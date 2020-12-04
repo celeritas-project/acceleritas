@@ -1,0 +1,12 @@
+.nfs*
+*~
+*.swp
+*.cache
+*.pyc
+.DS_Store
+compile_commands.json
+/[bB][uU][iI][lL][dD]*
+Testing
+/install
+/spack-build*
+.vscode
