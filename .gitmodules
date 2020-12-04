@@ -1,0 +1,3 @@
+[submodule "external/celeritas"]
+	path = external/celeritas
+	url = https://github.com/celeritas-project/celeritas
