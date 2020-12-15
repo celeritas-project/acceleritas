@@ -9,4 +9,5 @@ target_link_libraries(stub
   Celeritas::Core
   ${Geant4_LIBRARIES})
 
+add_subdirectory(g4hpc)
 #-----------------------------------------------------------------------------#
