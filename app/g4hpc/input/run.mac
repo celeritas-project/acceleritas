@@ -1,0 +1,17 @@
+#
+# set verboses 
+#
+/control/verbose 1
+/tracking/verbose 0
+/run/verbose 1
+/event/verbose 0
+#
+# g4hpc
+#
+/g4hpc/det/setMagField 3.8 tesla
+/g4hpc/trackingAction/setChunkElectrons 1000
+/g4hpc/trackingAction/setChunkPhotons 2000
+#
+# run
+#
+/run/beamOn 4
