@@ -15,45 +15,71 @@
 #include "FTFP_BERT.hh"
 #include "Randomize.hh"
 
-
-// for std::system(const char*)
-//#include <cstdlib>
-
 int main(int argc, char** argv)
 {
-  if(argc != 2) {
-    G4cout << "Usage: g4hpc run.mac" << G4endl;
-    return -1;
-  }
+    if (argc < 3 || argc > 5)
+    {
+        G4cout << "Usage: g4hpc -m run.mac [-t nthreads]" << G4endl;
+        return -1;
+    }
 
-  // Set the random seed
-  CLHEP::HepRandom::setTheSeed(1245214UL);
+    G4String macro;
+    int      nthreads = G4Threading::G4GetNumberOfCores();
 
-  auto* runmanager =
-  G4RunManagerFactory::CreateRunManager(G4RunManagerType::Tasking);
+    for (G4int i = 1; i < argc; i = i + 2)
+    {
+        if (G4String(argv[i]) == "-m")
+        {
+            macro = argv[i + 1];
+        }
+        if (G4String(argv[i]) == "-t")
+        {
+            nthreads = G4UIcommand::ConvertToInt(argv[i + 1]);
+        }
+    }
 
-  // Set user actions and initialize run
+    // Set the random seed
+    CLHEP::HepRandom::setTheSeed(1245214UL);
 
-  auto detector = std::make_unique<DetectorConstruction>();
-  runmanager->SetUserInitialization(detector.release());
+    auto* runmanager
+        = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Tasking);
 
-  auto physics_list = std::make_unique<FTFP_BERT>();
-  runmanager->SetUserInitialization(physics_list.release());
+    // Set the number of threads
+    if (runmanager)
+    {
+        G4MTRunManager* mt = dynamic_cast<G4MTRunManager*>(runmanager);
 
-  auto action_init = std::make_unique<ActionInitialization>();
-  runmanager->SetUserInitialization(action_init.release());
+        if (mt)
+        {
+            runmanager->SetNumberOfThreads(nthreads);
+            G4cout << "\ng4hpc: event loop running in MT with " << nthreads
+                   << " threads out of " << G4Threading::G4GetNumberOfCores()
+                   << " available cores\n"
+                   << G4endl;
+        }
+    }
 
-  runmanager->Initialize();
+    // Set user actions and initialize run
 
-  // Set the user interface
-  G4UImanager* UI = G4UImanager::GetUIpointer();
+    auto detector = std::make_unique<DetectorConstruction>();
+    runmanager->SetUserInitialization(detector.release());
 
-  G4String command = "/control/execute ";
-  G4String fileName = argv[1];
-  UI->ApplyCommand(command+fileName);
+    auto physics_list = std::make_unique<FTFP_BERT>();
+    runmanager->SetUserInitialization(physics_list.release());
 
-  //@termination
-  delete runmanager;
+    auto action_init = std::make_unique<ActionInitialization>();
+    runmanager->SetUserInitialization(action_init.release());
 
-  return 0;
+    runmanager->Initialize();
+
+    // Set the user interface
+    G4UImanager* UI = G4UImanager::GetUIpointer();
+
+    G4String command = "/control/execute ";
+    UI->ApplyCommand(command + macro);
+
+    //@termination
+    delete runmanager;
+
+    return 0;
 }
