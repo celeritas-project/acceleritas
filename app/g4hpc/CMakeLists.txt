@@ -15,7 +15,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 add_executable(${project} ${project}.cc ${sources} ${headers})
 
-target_link_libraries(${project} celeritas
+celeritas_target_link_libraries(${project} celeritas
   Celeritas::Core
   XercesC::XercesC
   ${Geant4_LIBRARIES})

@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 add_executable(stub stub.cc)
-target_link_libraries(stub
+celeritas_target_link_libraries(stub
   Celeritas::Core
   ${Geant4_LIBRARIES})
 
