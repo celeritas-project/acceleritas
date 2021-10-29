@@ -8,19 +8,29 @@
 #pragma once
 
 #include "G4UserRunAction.hh"
+#include "LDemoIO.hh"
 
 class G4Run;
-class G4Timer;
+class DeviceManager;
 
 class RunAction : public G4UserRunAction
 {
-public:
-  RunAction();
-  virtual ~RunAction();
-  
-  virtual void BeginOfRunAction(const G4Run* run);
-  virtual void EndOfRunAction(const G4Run* run);
+    using Arguments = demo_loop::LDemoArgs;
+    using r_pointer = std::unique_ptr<RunAction>;
+    using u_pointer = std::unique_ptr<DeviceManager>;
 
-private:
-  G4Timer* fTimer;
+  public:
+    RunAction();
+    ~RunAction() = default;
+
+    void BeginOfRunAction(const G4Run* run) final;
+
+    static RunAction*     Instance();
+    static Arguments      GetArgs() { return gArgs; }
+    static DeviceManager* GetDeviceManager() { return fDeviceManager.get(); }
+
+  private:
+    static Arguments gArgs;
+    static r_pointer gInstance;
+    static u_pointer fDeviceManager;
 };

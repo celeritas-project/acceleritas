@@ -12,22 +12,15 @@
 #include "TrackingAction.hh"
 #include "GeneratorAction.hh"
 
-ActionInitialization::ActionInitialization()
-  : G4VUserActionInitialization()
-{}
-
-ActionInitialization::~ActionInitialization()
-{}
-
 void ActionInitialization::BuildForMaster() const
 {
-  SetUserAction(new RunAction);
+    SetUserAction(new RunAction);
 }
 
 void ActionInitialization::Build() const
 {
-  SetUserAction(new RunAction);
-  SetUserAction(new EventAction);
-  SetUserAction(new TrackingAction);
-  SetUserAction(new GeneratorAction);
+    TrackingAction* trackingAction = new TrackingAction;
+    SetUserAction(trackingAction);
+    SetUserAction(new EventAction(trackingAction));
+    SetUserAction(new GeneratorAction);
 }

@@ -9,37 +9,39 @@
 
 #include "globals.hh"
 
-namespace g4hpc {
+namespace g4hpc
+{
+// tracker volume for magnetic field: unit in [mm]
+const G4double trackerRmax = 3000.0;
+const G4double trackerZmax = 3000.0;
 
-  //tracker volume for magnetic field: unit in [mm]
-  const G4double trackerRmax = 3000.0;
-  const G4double trackerZmax = 3000.0;
+// detector volume for magnetic field: unit in [mm]
+const G4double minR = 0.0;
+const G4double maxR = 9000.0;
+const G4double minZ = -16000.0;
+const G4double maxZ = 16000.0;
 
-  //detector volume for magnetic field: unit in [mm]
-  const G4double minR =      0.0;
-  const G4double maxR =   9000.0;
-  const G4double minZ = -16000.0;
-  const G4double maxZ =  16000.0;
+// field map array
+const G4int nbinR = 900 + 1;
+const G4int nbinZ = 2 * 1600 + 1;
+const G4int noffZ = 1600;
 
-  //field map array
-  const G4int nbinR = 900+1;
-  const G4int nbinZ = 2*1600+1;
-  const G4int noffZ = 1600;
+// Magnetic field types
 
-  //Magnetic field types
-
-  enum BFieldType {
-    kNull = -1,         // Not defined
-    kVolumebase,        // Volumebase grid (default for all regions)
-    kUniform,           // Uniform mangnetic field along +z
+enum BFieldType
+{
+    kNull = -1,  // Not defined
+    kVolumebase, // Volumebase grid (default for all regions)
+    kUniform,    // Uniform mangnetic field along +z
     kNumberBFieldType
-  };
+};
 
-  struct cmsFieldMapData {
-    G4int iz; 
+struct cmsFieldMapData
+{
+    G4int iz;
     G4int ir;
-    float Bz; 
+    float Bz;
     float Br;
-  };
+};
 
-}
+} // namespace g4hpc

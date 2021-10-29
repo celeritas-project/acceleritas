@@ -7,44 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "globals.hh"
 #include "G4UserTrackingAction.hh"
 
-#include <vector>
-#include "physics/base/Primary.hh"
-
 class G4Track;
-class G4GenericMessenger;
-
-using namespace celeritas;
 
 class TrackingAction : public G4UserTrackingAction
 {
-  using TrackStack = std::vector<Primary>;
+    using size_type = long unsigned int;
 
-public:
+  public:
+    TrackingAction() {}
+    ~TrackingAction() = default;
 
-  TrackingAction();
-  virtual ~TrackingAction();
-  
-  virtual void PreUserTrackingAction(const G4Track* track);
-  
-  void SetChunkElectrons(G4int val) { fChunkElectrons = val; }
-  G4int GetChunkElectrons() const { return fChunkElectrons; }
+    void PreUserTrackingAction(const G4Track* track) final;
+    void SetEventID(size_type id) { fEventId = id; }
 
-  void SetChunkPhotons(G4int val) { fChunkPhotons = val; }
-  G4int GetChunkPhotons() const { return fChunkPhotons; }
-
-private:
-  void DefineCommands();
-
-private:
-
-  long unsigned int fChunkPhotons;
-  long unsigned int fChunkElectrons;
-
-  TrackStack fPhotonStack;
-  TrackStack fElectronStack;
-
-  G4GenericMessenger* fMessenger;
+  private:
+    size_type fEventId{0};
+    size_type fNumberOfTrcks{0};
 };

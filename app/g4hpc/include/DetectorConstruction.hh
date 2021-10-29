@@ -10,28 +10,22 @@
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
 
-class MagneticField;
-class G4GenericMessenger;
 class G4VPhysicalVolume;
+class G4GenericMessenger;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
-public:
-  DetectorConstruction();
-  virtual ~DetectorConstruction();
-  
-public:
-  virtual G4VPhysicalVolume* Construct();
-  virtual void ConstructSDandField();
-  
-  void SetMagField(G4double fieldValue);
-  void SetGDMLFile();
-  
-private:
-  
-  static MagneticField* fMagField; 
-  G4GenericMessenger* fMessenger = nullptr;
-  
-  G4String fFileName;
-  std::unique_ptr<G4VPhysicalVolume> fWorldPhysVol;
+  public:
+    DetectorConstruction();
+    virtual ~DetectorConstruction();
+
+    G4VPhysicalVolume* Construct() final;
+    void               ConstructSDandField() final;
+
+  private:
+    void SetGDMLFile();
+
+  private:
+    G4String                           fFileName;
+    std::unique_ptr<G4VPhysicalVolume> fWorldPhysVol;
 };

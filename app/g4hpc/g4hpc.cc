@@ -60,7 +60,6 @@ int main(int argc, char** argv)
     }
 
     // Set user actions and initialize run
-
     auto detector = std::make_unique<DetectorConstruction>();
     runmanager->SetUserInitialization(detector.release());
 
@@ -70,13 +69,13 @@ int main(int argc, char** argv)
     auto action_init = std::make_unique<ActionInitialization>();
     runmanager->SetUserInitialization(action_init.release());
 
-    runmanager->Initialize();
-
     // Set the user interface
     G4UImanager* UI = G4UImanager::GetUIpointer();
 
     G4String command = "/control/execute ";
     UI->ApplyCommand(command + macro);
+
+    runmanager->Initialize();
 
     //@termination
     delete runmanager;

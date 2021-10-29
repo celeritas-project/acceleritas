@@ -13,19 +13,19 @@
 
 class MagneticField : public G4MagneticField
 {
-public:
-  MagneticField();
-  ~MagneticField();
+  public:
+    MagneticField();
+    ~MagneticField();
 
-  void GetFieldValue(const double point[3], double *bField ) const;
-  void SetFlux(G4double mag); 
+    void GetFieldValue(const double point[3], double* bField) const;
+    void SetFlux(G4double mag);
 
-  void ReadFieldMap(const char* filename);
+    void ReadFieldMap(const char* filename);
 
-  bool IsDefined(const double& z, const double& rho) const;
-  void GetVolumeBaseBfield(G4double const *point, G4double *bField) const ;
+    bool IsDefined(const double& z, const double& rho) const;
+    void GetVolumeBaseBfield(G4double const* point, G4double* bField) const;
 
-private:
-  G4double fFlux;
-  G4TwoVector **fieldMap;
+  private:
+    G4double      fFlux;
+    G4TwoVector** fieldMap;
 };

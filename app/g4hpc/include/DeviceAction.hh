@@ -3,20 +3,26 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInitialization.hh
+//! \file DeviceAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "G4VUserActionInitialization.hh"
+#include "globals.hh"
+#include "TrackStack.hh"
 
-class ActionInitialization : public G4VUserActionInitialization
+#include "LDemoIO.hh"
+
+class DeviceAction
 {
-  public:
-    // Constructor and Destructors
-    ActionInitialization()  = default;
-    ~ActionInitialization() = default;
+    using Result = demo_loop::LDemoResult;
 
   public:
-    void BuildForMaster() const final;
-    void Build() const final;
+    DeviceAction() {}
+    ~DeviceAction() = default;
+
+    G4int CountDevices() const;
+    void  ActivateDevice() const;
+    void  PropagateTracks(const TrackStack& stack) const;
+
+    void CreateHit(const Result& hits) const;
 };

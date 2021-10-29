@@ -6,41 +6,42 @@
 //! \file RunAction.cc
 //---------------------------------------------------------------------------//
 #include "RunAction.hh"
+#include "Configuration.hh"
+#include "DeviceManager.hh"
 
 #include "G4Run.hh"
-#include "G4Timer.hh"
 
-RunAction::RunAction()
- : G4UserRunAction()
-{ 
-  fTimer = new G4Timer;
+RunAction::r_pointer RunAction::gInstance;
+RunAction::u_pointer RunAction::fDeviceManager;
+demo_loop::LDemoArgs RunAction::gArgs;
+
+RunAction* RunAction::Instance()
+{
+    if (gInstance.get() == nullptr)
+        gInstance = r_pointer(new RunAction);
+    return gInstance.release();
 }
 
-RunAction::~RunAction()
+RunAction::RunAction() : G4UserRunAction()
 {
-  delete fTimer;
+    fDeviceManager = u_pointer(new DeviceManager());
 }
 
 void RunAction::BeginOfRunAction(const G4Run* run)
-{ 
-  G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
-  fTimer->Start();
-}
-
-void RunAction::EndOfRunAction(const G4Run* /*run*/)
 {
-  fTimer->Stop();
+    G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
 
-  G4int oldPrecision = G4cout.precision(3);
-  std::ios::fmtflags oldFlags = G4cout.flags();
-  G4cout.setf(std::ios::fixed,std::ios::floatfield); 
-  G4cout << "TimeReport> Time report complete in ";
-  if ( fTimer->IsValid() ) {
-    G4cout << fTimer->GetRealElapsed();
-  } else {
-    G4cout << "UNDEFINED";
-  }
-  G4cout << " seconds" << G4endl;
-  G4cout.setf(oldFlags);
-  G4cout.precision(oldPrecision);
+    Configuration* config   = Configuration::Instance();
+    gArgs.geometry_filename = config->GetGeometryFile();
+    gArgs.physics_filename  = config->GetPhysicsFile();
+    gArgs.hepmc3_filename   = config->GetHepMC3File();
+    gArgs.seed              = config->GetSeed();
+    gArgs.max_num_tracks    = config->GetMaxNumTracks();
+    gArgs.max_steps         = config->GetMaxSteps();
+    gArgs.storage_factor    = config->GetStorageFactor();
+
+    // Initialize the user task manager
+    long int nthreads = config->GetNumUserThreads();
+    fDeviceManager->InitializeTaskManager(nthreads);
+    fDeviceManager->TaskRunManagerInfo();
 }

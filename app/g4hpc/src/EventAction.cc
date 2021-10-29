@@ -8,45 +8,17 @@
 #include "EventAction.hh"
 
 #include "G4Event.hh"
-#include "G4Timer.hh"
-#include "G4Run.hh"
-#include "G4RunManager.hh"
+#include "RunAction.hh"
+#include "TrackingAction.hh"
+#include "DeviceManager.hh"
 
-#include <iomanip>
-
-EventAction::EventAction()
-  : G4UserEventAction(),
-    totalEventCPUTime(0.0)
+void EventAction::BeginOfEventAction(const G4Event* evt)
 {
-  eventTimer = new G4Timer;
+    fTrackingAction->SetEventID(evt->GetEventID());
 }
 
-EventAction::~EventAction()
+void EventAction::EndOfEventAction(const G4Event* /* evt */)
 {
-  delete eventTimer;
+    // Process left-over tracks
+    RunAction::Instance()->GetDeviceManager()->LaunchTask();
 }
-
-void EventAction::BeginOfEventAction(const G4Event*)
-{  
-  eventTimer->Start();
-}
-
-void EventAction::EndOfEventAction(const G4Event* evt)
-{
-  eventTimer->Stop();
-
-  double eventCpuTime = eventTimer->GetUserElapsed() 
-    + eventTimer->GetSystemElapsed();
-  totalEventCPUTime += eventCpuTime;
-
-  G4int precision_t = G4cout.precision(3);
-  std::ios::fmtflags flags_t = G4cout.flags();
-  G4cout.setf(std::ios::fixed,std::ios::floatfield); 
-  G4cout << "TimeEvent> "<< evt->GetEventID()+1 << " "
-         << G4RunManager::GetRunManager()->GetCurrentRun()->GetRunID()+1 << " "
-         << eventTimer->GetRealElapsed() << " " << eventCpuTime << " "
-         << totalEventCPUTime << G4endl;
-  G4cout.setf(flags_t);
-  G4cout.precision(precision_t);
-
-}  

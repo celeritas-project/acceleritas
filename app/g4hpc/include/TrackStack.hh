@@ -3,20 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file ActionInitialization.hh
+//! \file TrackStack.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "G4VUserActionInitialization.hh"
+#include <vector>
+#include "physics/base/Primary.hh"
 
-class ActionInitialization : public G4VUserActionInitialization
-{
-  public:
-    // Constructor and Destructors
-    ActionInitialization()  = default;
-    ~ActionInitialization() = default;
-
-  public:
-    void BuildForMaster() const final;
-    void Build() const final;
-};
+using TrackStack = std::vector<celeritas::Primary>;
