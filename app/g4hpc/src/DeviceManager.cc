@@ -6,9 +6,14 @@
 //! \file DeviceManager.cc
 //---------------------------------------------------------------------------//
 #include "DeviceManager.hh"
+#include "Configuration.hh"
 
 #include "G4Track.hh"
+#include "G4Gamma.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
 
+thread_local TrackStack               DeviceManager::fStack;
 thread_local DeviceManager::a_pointer DeviceManager::fAction;
 thread_local DeviceManager::m_pointer DeviceManager::fManager;
 
@@ -39,20 +44,40 @@ void DeviceManager::InitializeTaskManager(uintmax_t nthreads)
     thread_data->within_task = false;
 }
 
-void DeviceManager::AddTrack(id_type eventId, id_type pid, const G4Track& track)
+bool DeviceManager::IsApplicable(const G4Track& track) const
+{
+    // Condition for triggering the device task
+    G4ParticleDefinition* ptype = track.GetDefinition();
+    return (ptype == G4Gamma::Gamma() || ptype == G4Electron::Electron()
+            || ptype == G4Positron::Positron());
+}
+
+void DeviceManager::DoIt(id_type eventId, const G4Track& track)
+{
+    // Store this track to the stack
+    AddTrack(eventId, track);
+
+    if (StackSize() == Configuration::Instance()->GetChunkTracks())
+    {
+        LaunchTask();
+    }
+}
+
+void DeviceManager::AddTrack(id_type eventId, const G4Track& track)
 {
     using namespace celeritas;
 
+    unsigned int  pid = track.GetDefinition()->GetPDGEncoding();
     G4ThreeVector pos = track.GetPosition();
     G4ThreeVector dir = track.GetMomentumDirection();
     unsigned int  tid = track.GetTrackID();
 
-    fEmStack.push_back({ParticleId{pid},
-                        units::MevEnergy{track.GetKineticEnergy()},
-                        {pos.x(), pos.y(), pos.z()},
-                        {dir.x(), dir.y(), dir.z()},
-                        EventId{eventId},
-                        TrackId{tid}});
+    fStack.push_back({ParticleId{pid},
+                      units::MevEnergy{track.GetKineticEnergy()},
+                      {pos.x(), pos.y(), pos.z()},
+                      {dir.x(), dir.y(), dir.z()},
+                      EventId{eventId},
+                      TrackId{tid}});
 }
 
 void DeviceManager::LaunchTask()
@@ -60,11 +85,11 @@ void DeviceManager::LaunchTask()
     TaskGroup<void> device_tasks(Synchronize, fManager->GetThreadPool());
 
     // Submit work to task-groups
-    device_tasks.exec(DeviceTask, fEmStack);
+    device_tasks.exec(DeviceTask, fStack);
     device_tasks.join();
 
     // Clear tracks
-    fEmStack.clear();
+    fStack.clear();
 }
 
 void DeviceManager::TaskRunManagerInfo() const

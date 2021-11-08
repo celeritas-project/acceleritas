@@ -27,6 +27,7 @@ class DeviceManager
 {
   public:
     using id_type   = unsigned int;
+    using size_type = long unsigned int;
     using a_pointer = std::shared_ptr<DeviceAction>;
     using m_pointer = std::shared_ptr<TaskRunManager>;
 
@@ -39,19 +40,22 @@ class DeviceManager
         return fManager.get();
     }
 
+    void InitializeTaskManager(uintmax_t nthreads);
+    void TaskRunManagerInfo() const;
+    void LaunchTask();
+
+    virtual bool IsApplicable(const G4Track& track) const;
+    virtual void DoIt(id_type eventId, const G4Track& track);
+
+  private:
     inline static void Synchronize() { cudaDeviceSynchronize(); }
     static void        DeviceTask(const TrackStack& tracks);
 
-    void InitializeTaskManager(uintmax_t nthreads);
-    void AddTrack(id_type eventId, id_type pid, const G4Track& track);
-    void LaunchTask();
-
-    G4int StackSize() const { return fEmStack.size(); }
-
-    void TaskRunManagerInfo() const;
+    void      AddTrack(id_type eventId, const G4Track& track);
+    size_type StackSize() const { return fStack.size(); }
 
   private:
-    TrackStack                    fEmStack;
-    static thread_local a_pointer fAction;
-    static thread_local m_pointer fManager;
+    static thread_local TrackStack fStack;
+    static thread_local a_pointer  fAction;
+    static thread_local m_pointer  fManager;
 };

@@ -8,17 +8,9 @@
 #include "EventAction.hh"
 
 #include "G4Event.hh"
-#include "RunAction.hh"
 #include "TrackingAction.hh"
-#include "DeviceManager.hh"
 
 void EventAction::BeginOfEventAction(const G4Event* evt)
 {
     fTrackingAction->SetEventID(evt->GetEventID());
-}
-
-void EventAction::EndOfEventAction(const G4Event* /* evt */)
-{
-    // Process left-over tracks
-    RunAction::Instance()->GetDeviceManager()->LaunchTask();
 }

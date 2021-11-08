@@ -18,7 +18,6 @@ class EventAction : public G4UserEventAction
     ~EventAction() = default;
 
     void BeginOfEventAction(const G4Event* evt) final;
-    void EndOfEventAction(const G4Event* evt) final;
 
   private:
     TrackingAction* fTrackingAction = nullptr;

@@ -24,6 +24,7 @@ class RunAction : public G4UserRunAction
     ~RunAction() = default;
 
     void BeginOfRunAction(const G4Run* run) final;
+    void EndOfRunAction(const G4Run* run) final;
 
     static RunAction*     Instance();
     static Arguments      GetArgs() { return gArgs; }

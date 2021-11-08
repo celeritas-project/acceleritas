@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "RunAction.hh"
+#include "DeviceManager.hh"
+
 #include "G4UserTrackingAction.hh"
 
 class G4Track;
@@ -16,13 +19,18 @@ class TrackingAction : public G4UserTrackingAction
     using size_type = long unsigned int;
 
   public:
-    TrackingAction() {}
+    TrackingAction()  = default;
     ~TrackingAction() = default;
 
     void PreUserTrackingAction(const G4Track* track) final;
     void SetEventID(size_type id) { fEventId = id; }
 
   private:
+    inline static DeviceManager* GetDeviceManager()
+    {
+        return RunAction::Instance()->GetDeviceManager();
+    }
+
+  private:
     size_type fEventId{0};
-    size_type fNumberOfTrcks{0};
 };

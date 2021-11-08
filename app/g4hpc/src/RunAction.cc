@@ -45,3 +45,9 @@ void RunAction::BeginOfRunAction(const G4Run* run)
     fDeviceManager->InitializeTaskManager(nthreads);
     fDeviceManager->TaskRunManagerInfo();
 }
+
+void RunAction::EndOfRunAction(const G4Run* /* run */)
+{
+    // Process left-over tracks
+    fDeviceManager->LaunchTask();
+}
