@@ -68,12 +68,12 @@ void Configuration::DefineCommands()
     auto& geometryFileCmd
         = fMessenger->DeclareProperty("setGeometryFile", fGeometryFile);
     geometryFileCmd.SetGuidance("Set the geometry file name");
-    geometryFileCmd.SetDefaultValue("simple_cms.gdml");
+    geometryFileCmd.SetDefaultValue("simple-cms.gdml");
 
     auto& physicsFileCmd
         = fMessenger->DeclareProperty("setPhysicsFile", fPhysicsFile);
     physicsFileCmd.SetGuidance("Set the physics file name");
-    physicsFileCmd.SetDefaultValue("simple_cms.gdml.root");
+    physicsFileCmd.SetDefaultValue("simple-cms.gdml.root");
 
     auto& hepmc3FileCmd
         = fMessenger->DeclareProperty("setHepMC3File", fHepMC3File);
@@ -97,6 +97,16 @@ void Configuration::DefineCommands()
         = fMessenger->DeclareProperty("setStorageFactor", fStorageFactor);
     storageFactorCmd.SetGuidance("Set the storage factor");
     storageFactorCmd.SetDefaultValue("10");
+
+    auto& secondaryStackFactorCmd = fMessenger->DeclareProperty(
+        "setSecondaryStackFactor", fSecondaryStackFactor);
+    secondaryStackFactorCmd.SetGuidance("Set the secondary stack factor");
+    secondaryStackFactorCmd.SetDefaultValue("3");
+
+    auto& useDeviceCmd
+        = fMessenger->DeclareProperty("setUseDevice", fUseDevice);
+    useDeviceCmd.SetGuidance("Set the use device flag");
+    useDeviceCmd.SetDefaultValue("true");
 }
 
 void Configuration::SetMagField(G4double fieldValue)

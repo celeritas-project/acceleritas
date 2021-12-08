@@ -11,10 +11,13 @@
 #include "TrackStack.hh"
 
 #include "LDemoIO.hh"
+#include "Transporter.hh"
 
 class DeviceAction
 {
-    using Result = demo_loop::LDemoResult;
+    using Result      = celeritas::TransporterResult;
+    using Transporter = std::unique_ptr<celeritas::TransporterBase>;
+    using LDemoArgs   = demo_loop::LDemoArgs;
 
   public:
     DeviceAction() {}
@@ -22,7 +25,8 @@ class DeviceAction
 
     G4int CountDevices() const;
     void  ActivateDevice() const;
-    void  PropagateTracks(const TrackStack& stack) const;
+    void  PropagateTracks(const Transporter& transport_ptr,
+                          const TrackStack&  stack) const;
 
     void CreateHit(const Result& hits) const;
 };

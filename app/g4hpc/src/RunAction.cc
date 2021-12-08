@@ -8,7 +8,6 @@
 #include "RunAction.hh"
 #include "Configuration.hh"
 #include "DeviceManager.hh"
-
 #include "G4Run.hh"
 
 RunAction::r_pointer RunAction::gInstance;
@@ -31,14 +30,16 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 {
     G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
 
-    Configuration* config   = Configuration::Instance();
-    gArgs.geometry_filename = config->GetGeometryFile();
-    gArgs.physics_filename  = config->GetPhysicsFile();
-    gArgs.hepmc3_filename   = config->GetHepMC3File();
-    gArgs.seed              = config->GetSeed();
-    gArgs.max_num_tracks    = config->GetMaxNumTracks();
-    gArgs.max_steps         = config->GetMaxSteps();
-    gArgs.storage_factor    = config->GetStorageFactor();
+    Configuration* config        = Configuration::Instance();
+    gArgs.geometry_filename      = config->GetGeometryFile();
+    gArgs.physics_filename       = config->GetPhysicsFile();
+    gArgs.hepmc3_filename        = config->GetHepMC3File();
+    gArgs.seed                   = config->GetSeed();
+    gArgs.max_num_tracks         = config->GetMaxNumTracks();
+    gArgs.max_steps              = config->GetMaxSteps();
+    gArgs.storage_factor         = config->GetStorageFactor();
+    gArgs.secondary_stack_factor = config->GetSecondaryStackFactor();
+    gArgs.use_device             = config->GetUseDevice();
 
     // Initialize the user task manager
     long int nthreads = config->GetNumUserThreads();

@@ -19,6 +19,9 @@
 
 #include "cuda_runtime.h"
 
+#include "LDemoIO.hh"
+#include "Transporter.hh"
+
 class G4Track;
 
 using namespace PTL;
@@ -30,6 +33,10 @@ class DeviceManager
     using size_type = long unsigned int;
     using a_pointer = std::shared_ptr<DeviceAction>;
     using m_pointer = std::shared_ptr<TaskRunManager>;
+    using t_pointer = std::unique_ptr<celeritas::TransporterBase>;
+
+    using Result    = celeritas::TransporterResult;
+    using LDemoArgs = demo_loop::LDemoArgs;
 
   public:
     DeviceManager();
@@ -55,7 +62,8 @@ class DeviceManager
     size_type StackSize() const { return fStack.size(); }
 
   private:
-    static thread_local TrackStack fStack;
-    static thread_local a_pointer  fAction;
-    static thread_local m_pointer  fManager;
+    static TrackStack fStack;
+    static a_pointer  fAction;
+    static m_pointer  fManager;
+    static t_pointer  fTransport;
 };

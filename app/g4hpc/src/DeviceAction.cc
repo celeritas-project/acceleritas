@@ -8,8 +8,10 @@
 #include "DeviceAction.hh"
 #include "RunAction.hh"
 
-#include "LDemoRun.hh"
-#include "LDemoParams.hh"
+#include "LDemoIO.hh"
+#include "Transporter.hh"
+#include "sim/TrackInitParams.hh"
+
 #include "comm/Logger.hh"
 #include "comm/Communicator.hh"
 
@@ -37,13 +39,25 @@ void DeviceAction::ActivateDevice() const
     celeritas::set_cuda_stack_size(32768);
 }
 
-void DeviceAction::PropagateTracks(const TrackStack& tracks) const
+void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
+                                   const TrackStack&  tracks) const
 {
+    CELER_ENSURE(transport_ptr);
+
     ActivateDevice();
 
-    G4cout << "TODO: pass " << tracks.size() << " tracks to run_gpu" << G4endl;
-    auto result = run_gpu(RunAction::GetArgs());
+    demo_loop::LDemoArgs run_args = RunAction::GetArgs();
 
+    using celeritas::TrackInitParams;
+
+    TrackInitParams::Input input_data;
+    input_data.primaries      = tracks;
+    input_data.storage_factor = run_args.storage_factor;
+
+    std::shared_ptr<celeritas::TrackInitParams> primaries
+        = std::make_shared<TrackInitParams>(std::move(input_data));
+
+    auto result = (*transport_ptr)(*primaries);
     CreateHit(result);
 }
 

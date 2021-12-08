@@ -7,15 +7,20 @@
 //---------------------------------------------------------------------------//
 #include "DeviceManager.hh"
 #include "Configuration.hh"
+#include "RunAction.hh"
 
 #include "G4Track.hh"
 #include "G4Gamma.hh"
 #include "G4Electron.hh"
 #include "G4Positron.hh"
+#include "G4SystemOfUnits.hh"
 
-thread_local TrackStack               DeviceManager::fStack;
-thread_local DeviceManager::a_pointer DeviceManager::fAction;
-thread_local DeviceManager::m_pointer DeviceManager::fManager;
+#include "physics/base/ParticleParams.hh"
+
+TrackStack               DeviceManager::fStack;
+DeviceManager::a_pointer DeviceManager::fAction;
+DeviceManager::m_pointer DeviceManager::fManager;
+DeviceManager::t_pointer DeviceManager::fTransport;
 
 DeviceManager::DeviceManager()
 {
@@ -25,7 +30,7 @@ DeviceManager::DeviceManager()
 
 void DeviceManager::DeviceTask(const TrackStack& tracks)
 {
-    fAction.get()->PropagateTracks(tracks);
+    fAction.get()->PropagateTracks(fTransport, tracks);
 }
 
 void DeviceManager::InitializeTaskManager(uintmax_t nthreads)
@@ -42,6 +47,12 @@ void DeviceManager::InitializeTaskManager(uintmax_t nthreads)
         thread_data = new ThreadData(fManager->GetThreadPool());
     thread_data->is_main     = false;
     thread_data->within_task = false;
+
+    // Create transporter
+    fAction.get()->ActivateDevice();
+    demo_loop::LDemoArgs run_args = RunAction::GetArgs();
+    fTransport                    = demo_loop::build_transporter(run_args);
+    CELER_ENSURE(fTransport);
 }
 
 bool DeviceManager::IsApplicable(const G4Track& track) const
@@ -67,14 +78,16 @@ void DeviceManager::AddTrack(id_type eventId, const G4Track& track)
 {
     using namespace celeritas;
 
-    unsigned int  pid = track.GetDefinition()->GetPDGEncoding();
+    celeritas::PDGNumber  pdg{track.GetDefinition()->GetPDGEncoding()};
+    celeritas::ParticleId pid{fTransport->input().particles->find(pdg)};
+
     G4ThreeVector pos = track.GetPosition();
     G4ThreeVector dir = track.GetMomentumDirection();
     unsigned int  tid = track.GetTrackID();
 
-    fStack.push_back({ParticleId{pid},
+    fStack.push_back({pid,
                       units::MevEnergy{track.GetKineticEnergy()},
-                      {pos.x(), pos.y(), pos.z()},
+                      {pos.x() / cm, pos.y() / cm, pos.z() / cm},
                       {dir.x(), dir.y(), dir.z()},
                       EventId{eventId},
                       TrackId{tid}});

@@ -41,6 +41,6 @@ void DetectorConstruction::SetGDMLFile()
     else
     {
         // The default geometry
-        fFileName = "input/simple_cms.gdml";
+        fFileName = "input/simple-cms.gdml";
     }
 }

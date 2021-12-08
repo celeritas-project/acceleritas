@@ -8,6 +8,7 @@
 #pragma once
 
 #include "globals.hh"
+#include "base/Types.hh"
 
 class MagneticField;
 class G4GenericMessenger;
@@ -34,6 +35,8 @@ class Configuration
     size_type GetMaxNumTracks() const { return fMaxNumTracks; }
     size_type GetMaxSteps() const { return fMaxSteps; }
     size_type GetStorageFactor() const { return fStorageFactor; }
+    size_type GetSecondaryStackFactor() const { return fSecondaryStackFactor; }
+    G4bool    GetUseDevice() const { return fUseDevice; }
 
   private:
     Configuration();
@@ -54,6 +57,8 @@ class Configuration
     size_type fMaxNumTracks{};
     size_type fMaxSteps{};
     size_type fStorageFactor{};
+    size_type fSecondaryStackFactor{3};
+    G4bool    fUseDevice{true};
 
     G4GenericMessenger* fMessenger = nullptr;
 };
