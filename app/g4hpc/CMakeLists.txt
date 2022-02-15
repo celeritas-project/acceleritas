@@ -15,6 +15,8 @@ file(GLOB sources ${CMAKE_CURRENT_LIST_DIR}/src/*.cc
                   ${CELERITAS_DIR}/app/demo-loop/LDemoKernel.cc
                   ${CELERITAS_DIR}/app/demo-loop/diagnostic/*.cu
                   ${CELERITAS_DIR}/app/demo-loop/diagnostic/*.cc
+                  ${CELERITAS_DIR}/app/demo-loop/generated/*.cu
+                  ${CELERITAS_DIR}/app/demo-loop/generated/*.cc
 )
 
 file(GLOB headers ${CMAKE_CURRENT_LIST_DIR}/include/*.hh)
@@ -22,6 +24,7 @@ file(GLOB headers ${CMAKE_CURRENT_LIST_DIR}/include/*.hh)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/include
                     ${CELERITAS_DIR}/app/demo-loop
                     ${CELERITAS_DIR}/app/demo-loop/diagnostic
+                    ${CELERITAS_DIR}/app/demo-loop/generated
                     ${CELERITAS_DIR}/external/nlohmann_json/include
 )
 

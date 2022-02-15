@@ -52,7 +52,7 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
 
     TrackInitParams::Input input_data;
     input_data.primaries      = tracks;
-    input_data.storage_factor = run_args.storage_factor;
+    input_data.capacity = run_args.initializer_capacity;
 
     std::shared_ptr<celeritas::TrackInitParams> primaries
         = std::make_shared<TrackInitParams>(std::move(input_data));
