@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020 UT-Battelle, LLC and other Celeritas Developers.
+# Copyright 2021-2022 UT-Battelle, LLC and other Celeritas Developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
