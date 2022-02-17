@@ -34,9 +34,12 @@ class Configuration
     size_type GetSeed() const { return fSeed; }
     size_type GetMaxNumTracks() const { return fMaxNumTracks; }
     size_type GetMaxSteps() const { return fMaxSteps; }
-    size_type GetStorageFactor() const { return fStorageFactor; }
+    size_type GetCapacity() const { return fCapacity; }
     size_type GetSecondaryStackFactor() const { return fSecondaryStackFactor; }
     G4bool    GetUseDevice() const { return fUseDevice; }
+    G4bool    GetEnableDiagnostics() const { return fEnableDiagnostics; }
+    G4bool    GetSync() const { return fSync; }
+    G4bool    GetOffLoad() const { return fOffLoad; }
 
   private:
     Configuration();
@@ -56,9 +59,12 @@ class Configuration
     size_type fSeed{};
     size_type fMaxNumTracks{};
     size_type fMaxSteps{};
-    size_type fStorageFactor{};
+    size_type fCapacity{};
     size_type fSecondaryStackFactor{3};
     G4bool    fUseDevice{true};
+    G4bool    fEnableDiagnostics{false};
+    G4bool    fSync{false};
+    G4bool    fOffLoad{true};
 
     G4GenericMessenger* fMessenger = nullptr;
 };

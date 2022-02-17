@@ -5,13 +5,15 @@
 //---------------------------------------------------------------------------//
 //! \file TrackingAction.cc
 //---------------------------------------------------------------------------//
+#include "Configuration.hh"
 #include "TrackingAction.hh"
 
 #include "G4Track.hh"
 
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-    if (GetDeviceManager()->IsApplicable(*track))
+    if (Configuration::Instance()->GetOffLoad() && 
+        GetDeviceManager()->IsApplicable(*track))
     {
         GetDeviceManager()->DoIt(fEventId, *track);
         (const_cast<G4Track*>(track))->SetTrackStatus(fStopAndKill);

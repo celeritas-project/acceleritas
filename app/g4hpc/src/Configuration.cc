@@ -93,10 +93,10 @@ void Configuration::DefineCommands()
     maxStepsCmd.SetGuidance("Set the maximum number of steps");
     maxStepsCmd.SetDefaultValue("128");
 
-    auto& storageFactorCmd
-        = fMessenger->DeclareProperty("setStorageFactor", fStorageFactor);
-    storageFactorCmd.SetGuidance("Set the storage factor");
-    storageFactorCmd.SetDefaultValue("10");
+    auto& capacityCmd
+        = fMessenger->DeclareProperty("setCapacity", fCapacity);
+    capacityCmd.SetGuidance("Set the capacity factor");
+    capacityCmd.SetDefaultValue("1000000");
 
     auto& secondaryStackFactorCmd = fMessenger->DeclareProperty(
         "setSecondaryStackFactor", fSecondaryStackFactor);
@@ -107,6 +107,19 @@ void Configuration::DefineCommands()
         = fMessenger->DeclareProperty("setUseDevice", fUseDevice);
     useDeviceCmd.SetGuidance("Set the use device flag");
     useDeviceCmd.SetDefaultValue("true");
+
+    auto& enableDiagnosticsCmd
+        = fMessenger->DeclareProperty("setEnableDiagnostics", fEnableDiagnostics);
+    enableDiagnosticsCmd.SetGuidance("Set the enable diagnostics  flag");
+    enableDiagnosticsCmd.SetDefaultValue("false");
+
+    auto& syncCmd = fMessenger->DeclareProperty("setSync", fSync);
+    syncCmd.SetGuidance("Set the sync flag");
+    syncCmd.SetDefaultValue("true");
+
+    auto& offLoadCmd = fMessenger->DeclareProperty("setOffLoad", fOffLoad);
+    offLoadCmd.SetGuidance("Set the offload flag");
+    offLoadCmd.SetDefaultValue("true");
 }
 
 void Configuration::SetMagField(G4double fieldValue)

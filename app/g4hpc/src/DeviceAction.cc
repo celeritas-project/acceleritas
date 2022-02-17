@@ -63,5 +63,5 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
 
 void DeviceAction::CreateHit(const Result& hits) const
 {
-    G4cout << "TODO: Create hits with size " << hits.edep.size() << G4endl;
+   G4cout << "TODO: Create hits with size " << hits.edep.size() << G4endl;
 }

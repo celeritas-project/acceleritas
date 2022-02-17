@@ -37,9 +37,11 @@ void RunAction::BeginOfRunAction(const G4Run* run)
     gArgs.seed                   = config->GetSeed();
     gArgs.max_num_tracks         = config->GetMaxNumTracks();
     gArgs.max_steps              = config->GetMaxSteps();
-    gArgs.initializer_capacity   = config->GetStorageFactor();
+    gArgs.initializer_capacity   = config->GetCapacity();
     gArgs.secondary_stack_factor = config->GetSecondaryStackFactor();
     gArgs.use_device             = config->GetUseDevice();
+    gArgs.enable_diagnostics     = config->GetEnableDiagnostics();
+    gArgs.sync                   = config->GetSync();
 
     // Initialize the user task manager
     long int nthreads = config->GetNumUserThreads();
@@ -50,5 +52,8 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 void RunAction::EndOfRunAction(const G4Run* /* run */)
 {
     // Process left-over tracks
-    fDeviceManager->LaunchTask();
+    if (Configuration::Instance()->GetOffLoad()) 
+    {
+        fDeviceManager->LaunchTask();
+    }
 }
