@@ -32,7 +32,7 @@ add_executable(${project} ${project}.cc ${sources} ${headers})
 
 celeritas_target_link_libraries(${project} celeritas
   Celeritas::Core
-  Celeritas::ROOT
+  Celeritas::IO
   VecGeom::vecgeom
   XercesC::XercesC
   OpenMP::OpenMP_CXX
