@@ -48,11 +48,14 @@ void DeviceManager::InitializeTaskManager(uintmax_t nthreads)
     thread_data->is_main     = false;
     thread_data->within_task = false;
 
-    // Create transporter
-    fAction.get()->ActivateDevice();
-    demo_loop::LDemoArgs run_args = RunAction::GetArgs();
-    fTransport                    = demo_loop::build_transporter(run_args);
-    CELER_ENSURE(fTransport);
+    // Create transporter when offloading is enabled
+    if(Configuration::Instance()->GetOffLoad())
+    {
+        fAction.get()->ActivateDevice();
+        demo_loop::LDemoArgs run_args = RunAction::GetArgs();
+        fTransport                    = demo_loop::build_transporter(run_args);
+        CELER_ENSURE(fTransport);
+    }
 }
 
 bool DeviceManager::IsApplicable(const G4Track& track) const
