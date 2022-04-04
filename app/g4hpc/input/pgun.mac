@@ -1,0 +1,41 @@
+#
+# Offload EM particle transport for particle gun events
+#
+/run/initialize
+#
+# set verboses 
+#
+/control/verbose 1
+/tracking/verbose 0
+/run/verbose 1
+/event/verbose 0
+#
+# g4hpc - Geant4
+#
+/gun/number 1
+/gun/particle pi-
+/gun/energy 100 GeV
+/g4hpc/setSeed  12345
+/g4hpc/setNumUserThreads 1
+#
+# g4hpc - cleritas
+#
+/g4hpc/setChunkTracks 5120
+/g4hpc/setMaxNumTracks 50000
+/g4hpc/setMaxSteps  256
+/g4hpc/setCapacity  5000000
+/g4hpc/setSecondaryStackFactor 3
+/g4hpc/setUseDevice true
+/g4hpc/setEnableDiagnostics false
+/g4hpc/setSync true
+/g4hpc/setOffLoad true
+#
+# g4hpc - cleritas demo-loop input
+#
+/g4hpc/setGeometryFile "./input/simple-cms.gdml"
+/g4hpc/setPhysicsFile  "./input/simple-cms-gpu.root"
+/g4hpc/setHepMC3File  "./input/input.hepmc3"
+#
+# run
+#
+/run/beamOn 4
