@@ -34,7 +34,6 @@
 #
 /g4hpc/setGeometryFile "./input/simple-cms.gdml"
 /g4hpc/setPhysicsFile  "./input/simple-cms-gpu.root"
-/g4hpc/setHepMC3File  "./input/input.hepmc3"
 #
 # run
 #
