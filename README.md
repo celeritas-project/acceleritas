@@ -8,29 +8,31 @@ HEP simulations.
 
 ## Requirements:
 
-- Geant4 (Version 10.7)
-- VecGeom (Version 1.8)
 - CUDA
+- Geant4 (Version 11.0) (with GEANT4_USE_GDML=ON)
+- VecGeom (Version 1.1.18) (with DBACKEND="Scalar" and CUDA="ON")
+- ROOT (Version 6.XX.X)
 
-## Configuring and building acceleritas
+## Configuring and building acceleritas 
 
-An example CMake command looks like with the CUDA Capability 7.0:
+An example CMake command looks like with the CUDA Capability 7.0
+(assuming that celeritas required products are installed at ${INSTALL_DIR}:
 ```sh
-cmake ${SRC_DIR}/acceleritas  
+cmake ${SRC_DIR}/acceleritas \ 
       -D CELERITAS_USE_CUDA=ON \
-      -D CELERITAS_USE_MPI=OFF \
       -D CELERITAS_USE_Geant4=ON  \
       -D CELERITAS_USE_VecGeom=ON \
+      -D CELERITAS_USE_ROOT=ON \
       -D CMAKE_CUDA_FLAGS="-arch=sm_70" \
       -D CMAKE_BUILD_TYPE="RelWithDebInfo" \
       -D CMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
-      -D CMAKE_PREFIX_PATH="${VECGEOM_DIR};${XERCES_C_DIR}" \
+      -D CMAKE_PREFIX_PATH="${INSTALL_DIR};${XERCES_C_DIR}" \
       -D Geant4_DIR=${GEANT4_BUILD_DIR}
-make
+make -j
 ```
 
-## Running an application (example: g4hpc)
+## Running an application (example: g4hpc with 4 threads)
 ```sh
 ln -s ${SRC_DIR}/acceleritas/app/g4hpc/input input
-./app/g4hpc/g4hpc input/run.mac
+./app/g4hpc/g4hpc -m input/run.mac -t 4
 ```
