@@ -13,7 +13,7 @@
 # g4hpc - Geant4
 #
 /g4hpc/setSeed  12345
-/g4hpc/setNumUserThreads 1
+/g4hpc/setNumUserThreads 4
 /g4hpc/useHEPEvtGenerator true
 /g4hpc/setMagField 3.8 tesla
 #
