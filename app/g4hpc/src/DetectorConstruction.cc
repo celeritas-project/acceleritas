@@ -7,15 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 #include "Configuration.hh"
+#include "CalorimeterSD.hh"
 
 #include "G4GDMLParser.hh"
+#include "G4SDManager.hh"
 
 DetectorConstruction::DetectorConstruction() : G4VUserDetectorConstruction()
 {
-    G4GDMLParser parser;
+    fParser = std::make_unique<G4GDMLParser>();
     SetGDMLFile();
-    parser.Read(fFileName, false);
-    fWorldPhysVol.reset(parser.GetWorldVolume());
+    fParser.get()->Read(fFileName, false);
+    fWorldPhysVol.reset(fParser.get()->GetWorldVolume());
 }
 
 DetectorConstruction::~DetectorConstruction() {}
@@ -27,6 +29,23 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 void DetectorConstruction::ConstructSDandField()
 {
+    // Add Sensitive detectors
+    G4SDManager*            sd_manager = G4SDManager::GetSDMpointer();
+    const G4GDMLAuxMapType* aux_map    = fParser.get()->GetAuxMap();
+    for (auto& aux : *aux_map)
+    {
+        for (auto const& sd : aux.second)
+        {
+            if (sd.type == "SensDet" && sd.value == "em_calorimeter_sd")
+            {
+                G4String       name     = (aux.first)->GetName();
+                CalorimeterSD* calor_sd = new CalorimeterSD(name);
+                sd_manager->AddNewDetector(calor_sd);
+                (aux.first)->SetSensitiveDetector(calor_sd);
+            }
+        }
+    }
+
     // The magnetic field is defined through the UI messenger
     Configuration::Instance()->SetMagField(0.);
 }

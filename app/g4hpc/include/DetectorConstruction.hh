@@ -10,8 +10,9 @@
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
 
-class G4VPhysicalVolume;
 class G4GenericMessenger;
+class G4GDMLParser;
+class G4VPhysicalVolume;
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -27,5 +28,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
   private:
     G4String                           fFileName;
+    std::unique_ptr<G4GDMLParser>      fParser;
     std::unique_ptr<G4VPhysicalVolume> fWorldPhysVol;
 };
