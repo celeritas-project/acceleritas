@@ -23,6 +23,7 @@ class Configuration
 
     void   SetMagField(G4double fieldValue);
     G4bool GetUseHEPEvtGenerator() const { return fUseHEPEvt; }
+    G4bool GetWriteHits() const { return fWriteHits; }
 
     size_type GetNumUserThreads() const { return fNumUserThreads; }
     size_type GetChunkTracks() const { return fChunkTracks; }
@@ -31,6 +32,7 @@ class Configuration
     G4String GetPhysicsFile() const { return fPhysicsFile; }
     G4String GetHepMC3File() const { return fHepMC3File; }
 
+    // celeritas input arguments
     size_type GetSeed() const { return fSeed; }
     size_type GetMaxNumTracks() const { return fMaxNumTracks; }
     size_type GetMaxSteps() const { return fMaxSteps; }
@@ -52,6 +54,7 @@ class Configuration
     G4bool    fUseHEPEvt{false};
     size_type fNumUserThreads{1};
     size_type fChunkTracks{0};
+    G4bool    fWriteHits{false};
 
     G4String  fGeometryFile = "simple_cms.gdml";
     G4String  fPhysicsFile  = "simple_cms.gdml.root";

@@ -39,19 +39,24 @@ void Configuration::DefineCommands()
     // Define the command directory
     fMessenger = new G4GenericMessenger(this, "/g4hpc/", "g4hpc control");
 
-    // GeneratorAction
-    auto& generatorCmd
-        = fMessenger->DeclareProperty("useHEPEvtGenerator", fUseHEPEvt);
-    generatorCmd.SetGuidance("Use HEPEvt Generator");
-    generatorCmd.SetDefaultValue("true");
-
-    // DetectorConstruction
+    // DetectorConstruction - magnetic field
     auto& setMagFieldCmd = fMessenger->DeclareMethodWithUnit(
         "setMagField",
         "tesla",
         &Configuration::SetMagField,
         "Set the magnetic field value (along the x-axis");
     setMagFieldCmd.SetWorkerThreadOnly(false);
+
+    // GeneratorAction
+    auto& generatorCmd
+        = fMessenger->DeclareProperty("useHEPEvtGenerator", fUseHEPEvt);
+    generatorCmd.SetGuidance("Use HEPEvt Generator");
+    generatorCmd.SetDefaultValue("true");
+
+    // IO
+    auto& writeHitCmd = fMessenger->DeclareProperty("setWriteHits", fWriteHits);
+    writeHitCmd.SetGuidance("Set the WriteHits flag");
+    writeHitCmd.SetDefaultValue("false");
 
     // Tracking Action
     auto& numUserThreadsCmd
@@ -93,8 +98,7 @@ void Configuration::DefineCommands()
     maxStepsCmd.SetGuidance("Set the maximum number of steps");
     maxStepsCmd.SetDefaultValue("128");
 
-    auto& capacityCmd
-        = fMessenger->DeclareProperty("setCapacity", fCapacity);
+    auto& capacityCmd = fMessenger->DeclareProperty("setCapacity", fCapacity);
     capacityCmd.SetGuidance("Set the capacity factor");
     capacityCmd.SetDefaultValue("1000000");
 
@@ -108,8 +112,8 @@ void Configuration::DefineCommands()
     useDeviceCmd.SetGuidance("Set the use device flag");
     useDeviceCmd.SetDefaultValue("true");
 
-    auto& enableDiagnosticsCmd
-        = fMessenger->DeclareProperty("setEnableDiagnostics", fEnableDiagnostics);
+    auto& enableDiagnosticsCmd = fMessenger->DeclareProperty(
+        "setEnableDiagnostics", fEnableDiagnostics);
     enableDiagnosticsCmd.SetGuidance("Set the enable diagnostics  flag");
     enableDiagnosticsCmd.SetDefaultValue("false");
 
