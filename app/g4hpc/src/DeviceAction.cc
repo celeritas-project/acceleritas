@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file DeviceAction.cc
 //---------------------------------------------------------------------------//
+#include "Configuration.hh"
 #include "DeviceAction.hh"
 #include "RunAction.hh"
 
@@ -51,8 +52,8 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
     using celeritas::TrackInitParams;
 
     TrackInitParams::Input input_data;
-    input_data.primaries      = tracks;
-    input_data.capacity = run_args.initializer_capacity;
+    input_data.primaries = tracks;
+    input_data.capacity  = run_args.initializer_capacity;
 
     std::shared_ptr<celeritas::TrackInitParams> primaries
         = std::make_shared<TrackInitParams>(std::move(input_data));
@@ -63,5 +64,16 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
 
 void DeviceAction::CreateHit(const Result& hits) const
 {
-   G4cout << "TODO: Create hits with size " << hits.edep.size() << G4endl;
+    G4cout << "TODO: Create hits with size " << hits.edep.size() << G4endl;
+
+    if (Configuration::Instance()->GetEnableDiagnostics())
+    {
+        G4double edep_total = 0;
+        for (auto edep : hits.edep)
+        {
+            edep_total += edep;
+        }
+        G4cout << "total deposited energy  " << edep_total << G4endl;
+        G4cout << "total time (offloading) " << hits.time.total << G4endl;
+    }
 }
