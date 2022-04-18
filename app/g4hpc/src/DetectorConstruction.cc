@@ -8,6 +8,7 @@
 #include "DetectorConstruction.hh"
 #include "Configuration.hh"
 #include "CalorimeterSD.hh"
+#include "TrackerSD.hh"
 
 #include "G4GDMLParser.hh"
 #include "G4SDManager.hh"
@@ -36,7 +37,17 @@ void DetectorConstruction::ConstructSDandField()
     {
         for (auto const& sd : aux.second)
         {
-            if (sd.type == "SensDet" && sd.value == "em_calorimeter_sd")
+            if (sd.type != "SensDet")
+                continue;
+
+            if (sd.value == "si_tracker_sd")
+            {
+                G4String   name       = (aux.first)->GetName();
+                TrackerSD* tracker_sd = new TrackerSD(name);
+                sd_manager->AddNewDetector(tracker_sd);
+                (aux.first)->SetSensitiveDetector(tracker_sd);
+            }
+            if (sd.value == "em_calorimeter_sd")
             {
                 G4String       name     = (aux.first)->GetName();
                 CalorimeterSD* calor_sd = new CalorimeterSD(name);
