@@ -8,6 +8,8 @@
 #include "RunAction.hh"
 #include "Configuration.hh"
 #include "DeviceManager.hh"
+
+#include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 
 RunAction::r_pointer RunAction::gInstance;
@@ -43,6 +45,14 @@ void RunAction::BeginOfRunAction(const G4Run* run)
     gArgs.enable_diagnostics     = config->GetEnableDiagnostics();
     gArgs.sync                   = config->GetSync();
 
+    if (config->GetEnableAnalysis())
+    {
+        // Do analysis
+        auto analysis_manager = G4AnalysisManager::Instance();
+        analysis_manager->OpenFile("g4hpc.root");
+        analysis_manager->CreateH1("Edep", "Edep in Ecal", 100, 0., 100000);
+    }
+
     // Initialize the user task manager
     long int nthreads = config->GetNumUserThreads();
     fDeviceManager->InitializeTaskManager(nthreads);
@@ -51,9 +61,18 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 
 void RunAction::EndOfRunAction(const G4Run* /* run */)
 {
+    Configuration* config = Configuration::Instance();
+
     // Process left-over tracks
-    if (Configuration::Instance()->GetOffLoad()) 
+    if (config->GetOffLoad())
     {
         fDeviceManager->LaunchTask();
+    }
+
+    if (config->GetEnableAnalysis())
+    {
+        auto analysis_manager = G4AnalysisManager::Instance();
+        analysis_manager->Write();
+        analysis_manager->CloseFile();
     }
 }

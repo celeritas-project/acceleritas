@@ -21,6 +21,7 @@ void ActionInitialization::Build() const
 {
     TrackingAction* trackingAction = new TrackingAction;
     SetUserAction(trackingAction);
+    SetUserAction(new RunAction);
     SetUserAction(new EventAction(trackingAction));
     SetUserAction(new GeneratorAction);
 }

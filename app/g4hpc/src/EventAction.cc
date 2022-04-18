@@ -5,12 +5,57 @@
 //---------------------------------------------------------------------------//
 //! \file EventAction.cc
 //---------------------------------------------------------------------------//
+#include "Configuration.hh"
 #include "EventAction.hh"
-
-#include "G4Event.hh"
 #include "TrackingAction.hh"
 
-void EventAction::BeginOfEventAction(const G4Event* evt)
+#include "G4AnalysisManager.hh"
+#include "G4Event.hh"
+#include "G4SDManager.hh"
+
+void EventAction::BeginOfEventAction(const G4Event* event)
 {
-    fTrackingAction->SetEventID(evt->GetEventID());
+    fTrackingAction->SetEventID(event->GetEventID());
+}
+
+void EventAction::EndOfEventAction(const G4Event* event)
+{
+    // Get hits collections IDs (only once)
+    if (fcalorHCID == -1)
+    {
+        fcalorHCID = G4SDManager::GetSDMpointer()->GetCollectionID(
+            "em_calorimeter_HC");
+    }
+
+    // Get hits collections
+    auto calor_hc = GetHitsCollection(fcalorHCID, event);
+
+    // Get hit with total values
+    auto calor_hit = (*calor_hc)[calor_hc->entries() - 1];
+
+    if (Configuration::Instance()->GetEnableAnalysis())
+    {
+        // Do analysis
+        auto analysis_manager = G4AnalysisManager::Instance();
+        analysis_manager->FillH1(0, calor_hit->edep());
+    }
+}
+
+CalorimeterHitsCollection*
+EventAction::GetHitsCollection(G4int hcID, const G4Event* event) const
+{
+    auto hitsCollection = static_cast<CalorimeterHitsCollection*>(
+        event->GetHCofThisEvent()->GetHC(hcID));
+
+    if (!hitsCollection)
+    {
+        G4ExceptionDescription msg;
+        msg << "Cannot access hits Collection ID " << hcID;
+        G4Exception("EventAction::GetHitsCollection()",
+                    "MyCode0003",
+                    FatalException,
+                    msg);
+    }
+
+    return hitsCollection;
 }

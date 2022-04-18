@@ -42,6 +42,7 @@ class Configuration
     G4bool    GetEnableDiagnostics() const { return fEnableDiagnostics; }
     G4bool    GetSync() const { return fSync; }
     G4bool    GetOffLoad() const { return fOffLoad; }
+    G4bool    GetEnableAnalysis() const { return fEnableAnalysis; }
 
   private:
     Configuration();
@@ -68,6 +69,7 @@ class Configuration
     G4bool    fEnableDiagnostics{false};
     G4bool    fSync{false};
     G4bool    fOffLoad{true};
+    G4bool    fEnableAnalysis{false};
 
     G4GenericMessenger* fMessenger = nullptr;
 };

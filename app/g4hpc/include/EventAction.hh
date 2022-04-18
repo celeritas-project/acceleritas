@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "CalorimeterHit.hh"
+
 #include "G4UserEventAction.hh"
 
 class TrackingAction;
@@ -17,8 +19,14 @@ class EventAction : public G4UserEventAction
     explicit EventAction(TrackingAction* action) : fTrackingAction(action) {}
     ~EventAction() = default;
 
-    void BeginOfEventAction(const G4Event* evt) final;
+    void BeginOfEventAction(const G4Event* eventt) final;
+    void EndOfEventAction(const G4Event* event) final;
 
   private:
+    G4int           fcalorHCID      = -1;
     TrackingAction* fTrackingAction = nullptr;
+
+    // Helper function
+    CalorimeterHitsCollection*
+    GetHitsCollection(G4int hcID, const G4Event* event) const;
 };

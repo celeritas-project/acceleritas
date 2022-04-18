@@ -124,6 +124,11 @@ void Configuration::DefineCommands()
     auto& offLoadCmd = fMessenger->DeclareProperty("setOffLoad", fOffLoad);
     offLoadCmd.SetGuidance("Set the offload flag");
     offLoadCmd.SetDefaultValue("true");
+
+    auto& enableAnalysisCmd
+        = fMessenger->DeclareProperty("setEnableAnalysis", fEnableAnalysis);
+    enableAnalysisCmd.SetGuidance("Set the analysis flag");
+    enableAnalysisCmd.SetDefaultValue("false");
 }
 
 void Configuration::SetMagField(G4double fieldValue)
