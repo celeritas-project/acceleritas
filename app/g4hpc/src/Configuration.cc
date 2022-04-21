@@ -69,6 +69,15 @@ void Configuration::DefineCommands()
     chunkTracksCmd.SetGuidance("Set the size of track chunk for tasking");
     chunkTracksCmd.SetDefaultValue("10000");
 
+    auto& offLoadCmd = fMessenger->DeclareProperty("setOffLoad", fOffLoad);
+    offLoadCmd.SetGuidance("Set the offload flag");
+    offLoadCmd.SetDefaultValue("true");
+
+    auto& enableAnalysisCmd
+        = fMessenger->DeclareProperty("setEnableAnalysis", fEnableAnalysis);
+    enableAnalysisCmd.SetGuidance("Set the analysis flag");
+    enableAnalysisCmd.SetDefaultValue("false");
+
     // Parameters for celeritas
     auto& geometryFileCmd
         = fMessenger->DeclareProperty("setGeometryFile", fGeometryFile);
@@ -121,14 +130,10 @@ void Configuration::DefineCommands()
     syncCmd.SetGuidance("Set the sync flag");
     syncCmd.SetDefaultValue("true");
 
-    auto& offLoadCmd = fMessenger->DeclareProperty("setOffLoad", fOffLoad);
-    offLoadCmd.SetGuidance("Set the offload flag");
-    offLoadCmd.SetDefaultValue("true");
-
-    auto& enableAnalysisCmd
-        = fMessenger->DeclareProperty("setEnableAnalysis", fEnableAnalysis);
-    enableAnalysisCmd.SetGuidance("Set the analysis flag");
-    enableAnalysisCmd.SetDefaultValue("false");
+    auto& enableMscCmd
+        = fMessenger->DeclareProperty("setEnableMsc", fEnableMsc);
+    enableMscCmd.SetGuidance("Set the msc flag");
+    enableMscCmd.SetDefaultValue("true");
 }
 
 void Configuration::SetMagField(G4double fieldValue)
