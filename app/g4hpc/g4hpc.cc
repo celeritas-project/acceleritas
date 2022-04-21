@@ -12,19 +12,22 @@
 #include "G4Threading.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
-#include "FTFP_BERT.hh"
+//#include "FTFP_BERT.hh"
+#include "PhysicsList.hh"
 #include "Randomize.hh"
 
 int main(int argc, char** argv)
 {
-    if (argc < 3 || argc > 5)
+    if (argc < 3 || argc > 7)
     {
-        G4cout << "Usage: g4hpc -m run.mac [-t nthreads]" << G4endl;
+        G4cout << "Usage: g4hpc -m run.mac [-t nthreads] [-p msc]" << G4endl;
         return -1;
     }
 
     G4String macro;
-    int      nthreads = G4Threading::G4GetNumberOfCores();
+    G4int    nthreads = G4Threading::G4GetNumberOfCores();
+    // MSC options: 1 (on/default), 0 (off)
+    G4int msc_option = 1;
 
     for (G4int i = 1; i < argc; i = i + 2)
     {
@@ -35,6 +38,10 @@ int main(int argc, char** argv)
         if (G4String(argv[i]) == "-t")
         {
             nthreads = G4UIcommand::ConvertToInt(argv[i + 1]);
+        }
+        if (G4String(argv[i]) == "-p")
+        {
+            msc_option = G4UIcommand::ConvertToInt(argv[i + 1]);
         }
     }
 
@@ -63,7 +70,7 @@ int main(int argc, char** argv)
     auto detector = std::make_unique<DetectorConstruction>();
     runmanager->SetUserInitialization(detector.release());
 
-    auto physics_list = std::make_unique<FTFP_BERT>();
+    auto physics_list = std::make_unique<PhysicsList>(1, msc_option);
     runmanager->SetUserInitialization(physics_list.release());
 
     auto action_init = std::make_unique<ActionInitialization>();
