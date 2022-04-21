@@ -32,18 +32,28 @@ void RunAction::BeginOfRunAction(const G4Run* run)
 {
     G4cout << "### Run " << run->GetRunID() << " start." << G4endl;
 
-    Configuration* config        = Configuration::Instance();
-    gArgs.geometry_filename      = config->GetGeometryFile();
-    gArgs.physics_filename       = config->GetPhysicsFile();
-    gArgs.hepmc3_filename        = config->GetHepMC3File();
-    gArgs.seed                   = config->GetSeed();
-    gArgs.max_num_tracks         = config->GetMaxNumTracks();
-    gArgs.max_steps              = config->GetMaxSteps();
-    gArgs.initializer_capacity   = config->GetCapacity();
-    gArgs.secondary_stack_factor = config->GetSecondaryStackFactor();
-    gArgs.use_device             = config->GetUseDevice();
-    gArgs.enable_diagnostics     = config->GetEnableDiagnostics();
-    gArgs.sync                   = config->GetSync();
+    Configuration* config = Configuration::Instance();
+
+    if (IsMaster() && run != nullptr)
+    {
+        gArgs.geometry_filename      = config->GetGeometryFile();
+        gArgs.physics_filename       = config->GetPhysicsFile();
+        gArgs.hepmc3_filename        = config->GetHepMC3File();
+        gArgs.seed                   = config->GetSeed();
+        gArgs.max_num_tracks         = config->GetMaxNumTracks();
+        gArgs.max_steps              = config->GetMaxSteps();
+        gArgs.initializer_capacity   = config->GetCapacity();
+        gArgs.secondary_stack_factor = config->GetSecondaryStackFactor();
+        gArgs.use_device             = config->GetUseDevice();
+        gArgs.enable_diagnostics     = config->GetEnableDiagnostics();
+        gArgs.sync                   = config->GetSync();
+        gArgs.enable_msc             = config->GetEnableMsc();
+
+        // Initialize the user task manager
+        long int nthreads = config->GetNumUserThreads();
+        fDeviceManager->InitializeTaskManager(nthreads);
+        fDeviceManager->TaskRunManagerInfo();
+    }
 
     if (config->GetEnableAnalysis())
     {
@@ -52,21 +62,19 @@ void RunAction::BeginOfRunAction(const G4Run* run)
         analysis_manager->OpenFile("g4hpc.root");
         analysis_manager->CreateH1("Edep", "Edep in Ecal", 100, 0., 100000);
     }
-
-    // Initialize the user task manager
-    long int nthreads = config->GetNumUserThreads();
-    fDeviceManager->InitializeTaskManager(nthreads);
-    fDeviceManager->TaskRunManagerInfo();
 }
 
 void RunAction::EndOfRunAction(const G4Run* /* run */)
 {
     Configuration* config = Configuration::Instance();
 
-    // Process left-over tracks
-    if (config->GetOffLoad())
+    if (IsMaster())
     {
-        fDeviceManager->LaunchTask();
+        // Process left-over tracks
+        if (config->GetOffLoad())
+        {
+            fDeviceManager->LaunchTask();
+        }
     }
 
     if (config->GetEnableAnalysis())
