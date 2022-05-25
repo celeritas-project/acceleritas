@@ -23,7 +23,7 @@ cmake ${SRC_DIR}/acceleritas \
       -D CELERITAS_USE_Geant4=ON  \
       -D CELERITAS_USE_VecGeom=ON \
       -D CELERITAS_USE_ROOT=ON \
-      -D CMAKE_CUDA_FLAGS="-arch=sm_70" \
+      -D CMAKE_CUDA_ARCHITECTURES=70 \
       -D CMAKE_BUILD_TYPE="RelWithDebInfo" \
       -D CMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror" \
       -D CMAKE_PREFIX_PATH="${INSTALL_DIR};${XERCES_C_DIR}" \
