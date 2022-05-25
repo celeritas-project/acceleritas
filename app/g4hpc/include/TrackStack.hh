@@ -8,6 +8,6 @@
 #pragma once
 
 #include <vector>
-#include "physics/base/Primary.hh"
+#include "celeritas/phys/Primary.hh"
 
 using TrackStack = std::vector<celeritas::Primary>;

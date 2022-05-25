@@ -8,7 +8,7 @@
 #pragma once
 
 #include "globals.hh"
-#include "base/Types.hh"
+#include "celeritas/Types.hh"
 
 class MagneticField;
 class G4GenericMessenger;

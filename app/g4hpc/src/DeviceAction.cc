@@ -11,10 +11,8 @@
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
-#include "sim/TrackInitParams.hh"
-
-#include "comm/Logger.hh"
-#include "comm/Communicator.hh"
+#include "celeritas/ext/MpiCommunicator.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 G4int DeviceAction::CountDevices() const
 {
@@ -25,18 +23,11 @@ G4int DeviceAction::CountDevices() const
 
 void DeviceAction::ActivateDevice() const
 {
-    using celeritas::Communicator;
-
-    Communicator comm = Communicator{};
-
     // Initialize GPU
-    celeritas::activate_device(celeritas::Device::from_round_robin(comm));
+    using celeritas::MpiCommunicator;
 
-    if (!celeritas::device())
-    {
-        CELER_LOG(critical) << "CUDA capability is disabled";
-    }
-
+    MpiCommunicator comm = MpiCommunicator{};
+    celeritas::activate_device(celeritas::make_device(comm));
     celeritas::set_cuda_stack_size(32768);
 }
 
@@ -46,19 +37,7 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
     CELER_ENSURE(transport_ptr);
 
     ActivateDevice();
-
-    demo_loop::LDemoArgs run_args = RunAction::GetArgs();
-
-    using celeritas::TrackInitParams;
-
-    TrackInitParams::Input input_data;
-    input_data.primaries = tracks;
-    input_data.capacity  = run_args.initializer_capacity;
-
-    std::shared_ptr<celeritas::TrackInitParams> primaries
-        = std::make_shared<TrackInitParams>(std::move(input_data));
-
-    auto result = (*transport_ptr)(*primaries);
+    auto result = (*transport_ptr)(tracks);
     CreateHit(result);
 }
 

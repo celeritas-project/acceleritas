@@ -33,9 +33,9 @@ class DeviceManager
     using size_type = long unsigned int;
     using a_pointer = std::shared_ptr<DeviceAction>;
     using m_pointer = std::shared_ptr<TaskRunManager>;
-    using t_pointer = std::unique_ptr<celeritas::TransporterBase>;
+    using t_pointer = std::unique_ptr<demo_loop::TransporterBase>;
 
-    using Result    = celeritas::TransporterResult;
+    using Result    = demo_loop::TransporterResult;
     using LDemoArgs = demo_loop::LDemoArgs;
 
   public:

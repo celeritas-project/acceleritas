@@ -15,7 +15,7 @@
 #include "G4Positron.hh"
 #include "G4SystemOfUnits.hh"
 
-#include "physics/base/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 TrackStack               DeviceManager::fStack;
 DeviceManager::a_pointer DeviceManager::fAction;
@@ -82,7 +82,7 @@ void DeviceManager::AddTrack(id_type eventId, const G4Track& track)
     using namespace celeritas;
 
     celeritas::PDGNumber  pdg{track.GetDefinition()->GetPDGEncoding()};
-    celeritas::ParticleId pid{fTransport->input().particles->find(pdg)};
+    celeritas::ParticleId pid{fTransport->params().particle()->find(pdg)};
 
     G4ThreeVector pos = track.GetPosition();
     G4ThreeVector dir = track.GetMomentumDirection();

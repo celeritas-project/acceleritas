@@ -14,7 +14,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
                               "${CELERITAS_DIR}/cmake")
 
 include(GNUInstallDirs)
-include(CeleritasUtils)
 include(CMakeDependentOption)
 
 #---------------------------------------------------------------------------##
@@ -64,6 +63,7 @@ endif()
 find_package(Celeritas ${_required_when_no_git})
 
 add_subdirectory(external)
+include(CeleritasUtils)
 
 if(CELERITAS_USE_HepMC3)
   find_package(HepMC3 REQUIRED)

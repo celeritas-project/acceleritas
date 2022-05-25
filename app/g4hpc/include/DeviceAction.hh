@@ -15,8 +15,8 @@
 
 class DeviceAction
 {
-    using Result      = celeritas::TransporterResult;
-    using Transporter = std::unique_ptr<celeritas::TransporterBase>;
+    using Result      = demo_loop::TransporterResult;
+    using Transporter = std::unique_ptr<demo_loop::TransporterBase>;
     using LDemoArgs   = demo_loop::LDemoArgs;
 
   public:
