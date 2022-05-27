@@ -30,11 +30,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
     // Get hits collections
     auto calor_hc = GetHitsCollection(fcalorHCID, event);
 
-    // Get hit with total values
-    auto calor_hit = (*calor_hc)[calor_hc->entries() - 1];
-
-    if (Configuration::Instance()->GetEnableAnalysis())
+    if (Configuration::Instance()->GetEnableAnalysis()
+        && calor_hc->entries() > 0)
     {
+        // Get hit with total values
+        auto calor_hit = (*calor_hc)[calor_hc->entries() - 1];
+
         // Do analysis
         auto analysis_manager = G4AnalysisManager::Instance();
         analysis_manager->FillH1(0, calor_hit->edep());
