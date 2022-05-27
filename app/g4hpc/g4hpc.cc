@@ -12,7 +12,6 @@
 #include "G4Threading.hh"
 #include "G4UIExecutive.hh"
 #include "G4UImanager.hh"
-//#include "FTFP_BERT.hh"
 #include "PhysicsList.hh"
 #include "Randomize.hh"
 
