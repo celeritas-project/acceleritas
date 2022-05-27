@@ -70,10 +70,11 @@ void RunAction::EndOfRunAction(const G4Run* /* run */)
 
     if (IsMaster())
     {
-        // Process left-over tracks
+        // Process left-over tracks and delete the transport ptr
         if (config->GetOffLoad())
         {
             fDeviceManager->LaunchTask();
+            fDeviceManager->ResetTransport();
         }
     }
 

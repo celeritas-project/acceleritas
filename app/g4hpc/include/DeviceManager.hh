@@ -50,6 +50,7 @@ class DeviceManager
     void InitializeTaskManager(uintmax_t nthreads);
     void TaskRunManagerInfo() const;
     void LaunchTask();
+    void ResetTransport() { fTransport.reset(); }
 
     virtual bool IsApplicable(const G4Track& track) const;
     virtual void DoIt(id_type eventId, const G4Track& track);
