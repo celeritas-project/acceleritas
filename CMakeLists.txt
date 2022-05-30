@@ -16,30 +16,33 @@ include(GNUInstallDirs)
 # EXTERNAL CELERITAS
 #---------------------------------------------------------------------------##
 
+set(_default_builtin OFF)
 if(NOT ACCELERITAS_BUILTIN_CELERITAS)
   find_package(Celeritas)
   if(NOT Celeritas_FOUND)
     message(STATUS "External celeritas not found: using built-in submodule")
-    set(ACCELERITAS_BUILTIN_CELERITAS ON)
+    set(_default_builtin ON)
   endif()
 endif()
 
 option(ACCELERITAS_BUILTIN_CELERITAS "Use the built-in Celeritas submodule"
-  "${ACCELERITAS_BUILTIN_CELERITAS}")
+  "${_default_builtin}")
+
+if(ACCELERITAS_BUILTIN_CELERITAS)
+  add_subdirectory(external)
+endif()
 
 #---------------------------------------------------------------------------##
 # DEPENDENCIES
 #---------------------------------------------------------------------------##
 
-find_package(Geant4 11 REQUIRED)
-find_package(VecGeom 1.2 REQUIRED)
-
-#---------------------------------------------------------------------------##
-# EXTERNALS
-#---------------------------------------------------------------------------##
-
-if(ACCELERITAS_BUILTIN_CELERITAS)
-  add_subdirectory(external)
+if(NOT Geant4_FOUND)
+  find_package(Geant4 11 REQUIRED)
+elseif(NOT Geant4_VERSION VERSION_GREATER_EQUAL 11)
+  message(SEND_ERROR "Geant4 version is too old")
+endif()
+if(NOT VecGeom_FOUND)
+  find_package(VecGeom 1.2 REQUIRED)
 endif()
 
 #---------------------------------------------------------------------------##
