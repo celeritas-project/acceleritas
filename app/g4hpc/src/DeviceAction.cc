@@ -11,14 +11,13 @@
 
 #include "LDemoIO.hh"
 #include "Transporter.hh"
+#include "corecel/sys/Device.hh"
 #include "celeritas/ext/MpiCommunicator.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 G4int DeviceAction::CountDevices() const
 {
-    G4int num_devices;
-    cudaGetDeviceCount(&num_devices);
-    return num_devices;
+    return celeritas::Device::num_devices();
 }
 
 void DeviceAction::ActivateDevice() const

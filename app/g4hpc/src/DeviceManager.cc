@@ -15,7 +15,15 @@
 #include "G4Positron.hh"
 #include "G4SystemOfUnits.hh"
 
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
+
+namespace
+{
+void Synchronize() { CELER_CUDA_CALL(cudaDeviceSynchronize()); }
+}
 
 TrackStack               DeviceManager::fStack;
 DeviceManager::a_pointer DeviceManager::fAction;

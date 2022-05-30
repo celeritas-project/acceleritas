@@ -17,8 +17,6 @@
 #include "TrackStack.hh"
 #include "DeviceAction.hh"
 
-#include "cuda_runtime.h"
-
 #include "LDemoIO.hh"
 #include "Transporter.hh"
 
@@ -56,7 +54,6 @@ class DeviceManager
     virtual void DoIt(id_type eventId, const G4Track& track);
 
   private:
-    inline static void Synchronize() { cudaDeviceSynchronize(); }
     static void        DeviceTask(const TrackStack& tracks);
 
     void      AddTrack(id_type eventId, const G4Track& track);
