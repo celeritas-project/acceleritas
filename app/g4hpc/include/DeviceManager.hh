@@ -42,7 +42,7 @@ class DeviceManager
     DeviceManager();
     ~DeviceManager() = default;
 
-    inline static thread_local TaskRunManager* GetTaskManager()
+    inline static TaskRunManager* GetTaskManager()
     {
         return fManager.get();
     }
