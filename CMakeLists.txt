@@ -5,72 +5,41 @@
 #----------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.12)
-project(AcceleritasGeant4 VERSION 0.0.1 LANGUAGES CXX CUDA)
+project(Acceleritas VERSION 0.0.0 LANGUAGES CXX)
 cmake_policy(VERSION 3.12...3.18)
 
-set(CELERITAS_DIR ${PROJECT_SOURCE_DIR}/external/celeritas)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake"
-                              "${CELERITAS_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(GNUInstallDirs)
-include(CMakeDependentOption)
 
 #---------------------------------------------------------------------------##
-# OPTIONS
+# EXTERNAL CELERITAS
 #---------------------------------------------------------------------------##
-option(CELERITAS_USE_VecGeom "Enable VecGeom geometry" ON)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CUDA_STANDARD 14)
-set(CMAKE_CUDA_EXTENSIONS OFF)
+if(NOT ACCELERITAS_BUILTIN_CELERITAS)
+  find_package(Celeritas)
+  if(NOT Celeritas_FOUND)
+    message(STATUS "External celeritas not found: using built-in submodule")
+    set(ACCELERITAS_BUILTIN_CELERITAS ON)
+  endif()
+endif()
+
+option(ACCELERITAS_BUILTIN_CELERITAS "Use the built-in Celeritas submodule"
+  "${ACCELERITAS_BUILTIN_CELERITAS}")
 
 #---------------------------------------------------------------------------##
 # DEPENDENCIES
 #---------------------------------------------------------------------------##
 
-find_package(Geant4 REQUIRED)
-
-if(CELERITAS_USE_VecGeom)
-  find_package(VecGeom 1.1.17 REQUIRED)
-
-  if((CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
-      OR (NOT CELERITAS_USE_CUDA AND VecGeom_CUDA_FOUND))
-    message(SEND_ERROR "CUDA mismatch between the VecGeom installation "
-      "at ${VECGEOM_INSTALL_DIR} (VecGeom_CUDA_FOUND=${VecGeom_CUDA_FOUND}) "
-      "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
-    )
-  endif()
-  if(NOT VecGeom_GDML_FOUND)
-    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
-  endif()
-endif()
-
-find_package(OpenMP)
+find_package(Geant4 11 REQUIRED)
+find_package(VecGeom 1.2 REQUIRED)
 
 #---------------------------------------------------------------------------##
 # EXTERNALS
 #---------------------------------------------------------------------------##
-include(CeleritasLoadSubmodule)
 
-if(NOT CELERITAS_GIT_SUBMODULE)
-  set(_required_when_no_git REQUIRED)
-else()
-  set(_required_when_no_git QUIET)
-endif()
-
-find_package(Celeritas ${_required_when_no_git})
-
-add_subdirectory(external)
-include(CeleritasUtils)
-
-if(CELERITAS_USE_HepMC3)
-  find_package(HepMC3 REQUIRED)
-endif()
-
-if(CELERITAS_USE_JSON)
-  find_package(nlohmann_json 3.7.0 REQUIRED)
+if(ACCELERITAS_BUILTIN_CELERITAS)
+  add_subdirectory(external)
 endif()
 
 #---------------------------------------------------------------------------##

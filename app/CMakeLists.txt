@@ -4,7 +4,9 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-include(CeleritasLibrary)
+if(NOT ACCELERITAS_BUILTIN_CELERITAS)
+  include(CeleritasLibrary)
+endif()
 
 #-----------------------------------------------------------------------------#
 # g4hpc: a Geant4 tasking application for HEP (LHC/CMS)
