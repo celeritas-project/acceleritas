@@ -1,0 +1,155 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2021-2022 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+//! \file demo-loop/Transporter.hh
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include <memory>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/math/NumericLimits.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/global/CoreParams.hh"
+
+namespace celeritas
+{
+struct Primary;
+}
+
+namespace demo_loop
+{
+//---------------------------------------------------------------------------//
+struct EnergyDiagInput
+{
+    using size_type = celeritas::size_type;
+    using real_type = celeritas::real_type;
+
+    char      axis{'z'};
+    real_type min{-700};
+    real_type max{700};
+    size_type num_bins{1024};
+};
+
+//---------------------------------------------------------------------------//
+//! Input parameters to the transporter.
+struct TransporterInput
+{
+    using size_type  = celeritas::size_type;
+    using CoreParams = celeritas::CoreParams;
+
+    //! Arbitrarily high number for not stopping the simulation short
+    static constexpr size_type no_max_steps()
+    {
+        return celeritas::numeric_limits<size_type>::max();
+    }
+
+    // Problem parameters
+    std::shared_ptr<const CoreParams> params;
+
+    // Run setup
+    size_type num_track_slots{};  //!< AKA max_num_tracks
+    size_type num_initializers{}; //!< AKA initializer_capacity
+    size_type max_steps{};
+    bool      enable_diagnostics{false};
+
+    // Diagnostic setup
+    EnergyDiagInput energy_diag;
+
+    //! True if all params are assigned
+    explicit operator bool() const
+    {
+        return params && num_track_slots > 0 && num_initializers > 0
+               && max_steps > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Simulation timing results.
+struct TransporterTiming
+{
+    using real_type = celeritas::real_type;
+    using VecReal   = std::vector<real_type>;
+
+    VecReal   steps;   //!< Real time per step
+    real_type total{}; //!< Total simulation time
+    real_type setup{}; //!< One-time initialization cost
+};
+
+//---------------------------------------------------------------------------//
+//! Tallied result and timing from transporting a set of primaries
+struct TransporterResult
+{
+    //!@{
+    //! Type aliases
+    using real_type         = celeritas::real_type;
+    using size_type         = celeritas::size_type;
+    using VecCount          = std::vector<size_type>;
+    using VecReal           = std::vector<real_type>;
+    using MapStringCount    = std::unordered_map<std::string, size_type>;
+    using MapStringVecCount = std::unordered_map<std::string, VecCount>;
+    //!@}
+
+    //// DATA ////
+
+    VecCount          initializers; //!< Num starting track initializers
+    VecCount          active;       //!< Num tracks active at beginning of step
+    VecCount          alive;        //!< Num living tracks at end of step
+    VecReal           edep;         //!< Energy deposition along the grid
+    MapStringCount    process;      //!< Count of particle/process interactions
+    MapStringVecCount steps;        //!< Distribution of steps
+    TransporterTiming time;         //!< Timing information
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interface class for transporting a set of primaries to completion.
+ */
+class TransporterBase
+{
+  public:
+    //!@{
+    //! Type aliases
+    using VecPrimary = std::vector<celeritas::Primary>;
+    using CoreParams = celeritas::CoreParams;
+    using ActionId   = celeritas::ActionId;
+    //!@}
+
+  public:
+    virtual ~TransporterBase() = 0;
+
+    // Transport the input primaries and all secondaries produced
+    virtual TransporterResult operator()(VecPrimary primaries) = 0;
+
+    //! Access input parameters (TODO hacky)
+    const CoreParams& params() const { return *input_.params; }
+
+  protected:
+    // TODO: these protected data are a hack for now
+    TransporterInput                 input_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport a set of primaries to completion.
+ */
+template<celeritas::MemSpace M>
+class Transporter final : public TransporterBase
+{
+  public:
+    // Construct from parameters
+    explicit Transporter(TransporterInput inp);
+
+    // Transport the input primaries and all secondaries produced
+    TransporterResult operator()(VecPrimary primaries) final;
+};
+
+//---------------------------------------------------------------------------//
+} // namespace demo_loop
