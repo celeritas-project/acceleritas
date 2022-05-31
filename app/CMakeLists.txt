@@ -38,20 +38,15 @@ target_include_directories(g4hpc PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/temp
 )
 
-if(ACCELERITAS_BUILTIN_CELERITAS)
-  celeritas_target_link_libraries(g4hpc PUBLIC VecGeom::vecgeom)
-endif()
-
-celeritas_target_link_libraries(g4hpc PUBLIC
+celeritas_target_link_libraries(g4hpc
   Celeritas::Core
   Celeritas::IO
   ${Geant4_LIBRARIES}
 )
 
-if(CELERITAS_USE_CUDA OR ACCELERITAS_BUILTIN_CELERITAS)
+if(CELERITAS_USE_CUDA)
   # Since we call cudaDeviceSync
-  celeritas_target_link_libraries(g4hpc PRIVATE
+  celeritas_target_link_libraries(g4hpc
     CUDA::cudart
   )
 endif()
-

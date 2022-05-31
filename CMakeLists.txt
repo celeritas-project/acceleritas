@@ -30,6 +30,8 @@ option(ACCELERITAS_BUILTIN_CELERITAS "Use the built-in Celeritas submodule"
 
 if(ACCELERITAS_BUILTIN_CELERITAS)
   add_subdirectory(external)
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/celeritas/cmake")
+  # CUDA toolkit doesn't
 endif()
 
 #---------------------------------------------------------------------------##
@@ -41,8 +43,10 @@ if(NOT Geant4_FOUND)
 elseif(NOT Geant4_VERSION VERSION_GREATER_EQUAL 11)
   message(SEND_ERROR "Geant4 version is too old")
 endif()
-if(NOT VecGeom_FOUND)
-  find_package(VecGeom 1.2 REQUIRED)
+
+if(CELERITAS_USE_CUDA AND ACCELERITAS_BUILTIN_CELERITAS)
+  # For some reason the CUDA toolkit target is not global?
+  find_package(CUDAToolkit QUIET REQUIRED)
 endif()
 
 #---------------------------------------------------------------------------##
