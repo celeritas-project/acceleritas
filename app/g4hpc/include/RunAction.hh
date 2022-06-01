@@ -16,7 +16,6 @@ class DeviceManager;
 class RunAction : public G4UserRunAction
 {
     using Arguments = demo_loop::LDemoArgs;
-    using r_pointer = std::unique_ptr<RunAction>;
     using u_pointer = std::unique_ptr<DeviceManager>;
 
   public:
@@ -31,7 +30,7 @@ class RunAction : public G4UserRunAction
     static DeviceManager* GetDeviceManager() { return fDeviceManager.get(); }
 
   private:
-    static Arguments gArgs;
-    static r_pointer gInstance;
-    static u_pointer fDeviceManager;
+    static RunAction* gInstance;
+    static Arguments  gArgs;
+    static u_pointer  fDeviceManager;
 };

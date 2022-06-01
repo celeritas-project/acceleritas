@@ -9,6 +9,7 @@
 #include "Configuration.hh"
 #include "RunAction.hh"
 
+#include "G4AutoLock.hh"
 #include "G4Track.hh"
 #include "G4Gamma.hh"
 #include "G4Electron.hh"
@@ -22,8 +23,13 @@
 
 namespace
 {
-void Synchronize() { CELER_CUDA_CALL(cudaDeviceSynchronize()); }
+G4Mutex dm_mutex = G4MUTEX_INITIALIZER;
+
+void Synchronize()
+{
+    CELER_CUDA_CALL(cudaDeviceSynchronize());
 }
+} // namespace
 
 TrackStack               DeviceManager::fStack;
 DeviceManager::a_pointer DeviceManager::fAction;
@@ -57,7 +63,7 @@ void DeviceManager::InitializeTaskManager(uintmax_t nthreads)
     thread_data->within_task = false;
 
     // Create transporter when offloading is enabled
-    if(Configuration::Instance()->GetOffLoad())
+    if (Configuration::Instance()->GetOffLoad())
     {
         fAction.get()->ActivateDevice();
         demo_loop::LDemoArgs run_args = RunAction::GetArgs();
@@ -96,6 +102,7 @@ void DeviceManager::AddTrack(id_type eventId, const G4Track& track)
     G4ThreeVector dir = track.GetMomentumDirection();
     unsigned int  tid = track.GetTrackID();
 
+    G4AutoLock lock(&dm_mutex);
     fStack.push_back({pid,
                       units::MevEnergy{track.GetKineticEnergy()},
                       {pos.x() / cm, pos.y() / cm, pos.z() / cm},

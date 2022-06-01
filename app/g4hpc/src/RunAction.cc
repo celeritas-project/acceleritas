@@ -12,15 +12,17 @@
 #include "G4AnalysisManager.hh"
 #include "G4Run.hh"
 
-RunAction::r_pointer RunAction::gInstance;
+RunAction*           RunAction::gInstance = nullptr;
 RunAction::u_pointer RunAction::fDeviceManager;
 demo_loop::LDemoArgs RunAction::gArgs;
 
 RunAction* RunAction::Instance()
 {
-    if (gInstance.get() == nullptr)
-        gInstance = r_pointer(new RunAction);
-    return gInstance.release();
+    if (gInstance == nullptr)
+    {
+        gInstance = new RunAction;
+    }
+    return gInstance;
 }
 
 RunAction::RunAction() : G4UserRunAction()
