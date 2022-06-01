@@ -8,13 +8,20 @@
 #include "Configuration.hh"
 #include "TrackingAction.hh"
 
+#include "G4AutoLock.hh"
 #include "G4Track.hh"
+
+namespace
+{
+G4Mutex doit_mutex = G4MUTEX_INITIALIZER;
+}
 
 void TrackingAction::PreUserTrackingAction(const G4Track* track)
 {
-    if (Configuration::Instance()->GetOffLoad() && 
-        GetDeviceManager()->IsApplicable(*track))
+    if (Configuration::Instance()->GetOffLoad()
+        && GetDeviceManager()->IsApplicable(*track))
     {
+        G4AutoLock lock(&doit_mutex);
         GetDeviceManager()->DoIt(fEventId, *track);
         (const_cast<G4Track*>(track))->SetTrackStatus(fStopAndKill);
     }
