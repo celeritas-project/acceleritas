@@ -22,11 +22,14 @@ G4int DeviceAction::CountDevices() const
 
 void DeviceAction::ActivateDevice() const
 {
+    CELER_CUDA_CALL(cudaDeviceReset());
+
     // Initialize GPU
     using celeritas::MpiCommunicator;
 
     MpiCommunicator comm = MpiCommunicator{};
     celeritas::activate_device(celeritas::make_device(comm));
+
     celeritas::set_cuda_stack_size(32768);
 }
 
@@ -35,7 +38,6 @@ void DeviceAction::PropagateTracks(const Transporter& transport_ptr,
 {
     CELER_ENSURE(transport_ptr);
 
-    ActivateDevice();
     auto result = (*transport_ptr)(tracks);
     CreateHit(result);
 }
