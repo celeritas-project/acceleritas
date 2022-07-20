@@ -95,14 +95,16 @@ void DeviceManager::AddTrack(id_type eventId, const G4Track& track)
     celeritas::PDGNumber  pdg{track.GetDefinition()->GetPDGEncoding()};
     celeritas::ParticleId pid{fTransport->params().particle()->find(pdg)};
 
-    G4ThreeVector pos = track.GetPosition();
-    G4ThreeVector dir = track.GetMomentumDirection();
-    unsigned int  tid = track.GetTrackID();
+    G4ThreeVector pos  = track.GetPosition();
+    G4ThreeVector dir  = track.GetMomentumDirection();
+    G4double      time = track.GetGlobalTime();
+    unsigned int  tid  = track.GetTrackID();
 
     fStack.push_back({pid,
                       units::MevEnergy{track.GetKineticEnergy()},
                       {pos.x() / cm, pos.y() / cm, pos.z() / cm},
                       {dir.x(), dir.y(), dir.z()},
+                      time,
                       EventId{eventId},
                       TrackId{tid}});
 }
