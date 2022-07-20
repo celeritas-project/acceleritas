@@ -12,6 +12,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/EIonizationProcess.hh"
@@ -21,6 +22,7 @@
 #include "celeritas/em/process/PhotoelectricProcess.hh"
 #include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/GeantImporter.hh"
+#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
@@ -37,6 +39,32 @@ using namespace celeritas;
 
 namespace demo_loop
 {
+//---------------------------------------------------------------------------//
+//!@{
+//! I/O routines for JSON
+void to_json(nlohmann::json& j, const EnergyDiagInput& v)
+{
+    j = nlohmann::json{{"axis", std::string(1, v.axis)},
+                       {"min", v.min},
+                       {"max", v.max},
+                       {"num_bins", v.num_bins}};
+}
+
+void from_json(const nlohmann::json& j, EnergyDiagInput& v)
+{
+    std::string temp_axis;
+    j.at("axis").get_to(temp_axis);
+    CELER_VALIDATE(temp_axis.size() == 1,
+                   << "axis spec has length " << temp_axis.size()
+                   << " (must be a single character)");
+    v.axis = temp_axis.front();
+    j.at("min").get_to(v.min);
+    j.at("max").get_to(v.max);
+    j.at("num_bins").get_to(v.num_bins);
+}
+//!@}
+//---------------------------------------------------------------------------//
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -44,18 +72,97 @@ namespace
 //---------------------------------------------------------------------------//
 //! Check that volume names are consistent between the ROOT file and geometry
 bool volumes_are_consistent(const GeoParams&                 geo,
-                            const std::vector<ImportVolume>& imported_data)
+                            const std::vector<ImportVolume>& imported)
 {
-    return geo.num_volumes() == imported_data.size()
+    return geo.num_volumes() == imported.size()
            && std::all_of(RangeIter<VolumeId>(VolumeId{0}),
                           RangeIter<VolumeId>(VolumeId{geo.num_volumes()}),
                           [&](VolumeId vol) {
                               return geo.id_to_label(vol)
-                                     == imported_data[vol.unchecked_get()].name;
+                                     == Label::from_geant(
+                                         imported[vol.unchecked_get()].name);
                           });
 }
+
 //---------------------------------------------------------------------------//
 } // namespace
+
+//---------------------------------------------------------------------------//
+//!@{
+//! I/O routines for JSON
+void to_json(nlohmann::json& j, const LDemoArgs& v)
+{
+    j = nlohmann::json{{"geometry_filename", v.geometry_filename},
+                       {"physics_filename", v.physics_filename},
+                       {"hepmc3_filename", v.hepmc3_filename},
+                       {"seed", v.seed},
+                       {"max_num_tracks", v.max_num_tracks},
+                       {"max_steps", v.max_steps},
+                       {"initializer_capacity", v.initializer_capacity},
+                       {"secondary_stack_factor", v.secondary_stack_factor},
+                       {"enable_diagnostics", v.enable_diagnostics},
+                       {"use_device", v.use_device},
+                       {"sync", v.sync},
+                       {"rayleigh", v.rayleigh},
+                       {"eloss_fluctuation", v.eloss_fluctuation},
+                       {"brem_combined", v.brem_combined},
+                       {"brem_lpm", v.brem_lpm},
+                       {"conv_lpm", v.conv_lpm},
+                       {"enable_msc", v.enable_msc}};
+    if (v.enable_diagnostics)
+    {
+        j["energy_diag"] = v.energy_diag;
+    }
+    if (v.step_limiter > 0)
+    {
+        j["step_limiter"] = v.step_limiter;
+    }
+    if (ends_with(v.geometry_filename, ".gdml"))
+    {
+        j["geant_options"] = v.geant_options;
+    }
+}
+
+void from_json(const nlohmann::json& j, LDemoArgs& v)
+{
+    j.at("geometry_filename").get_to(v.geometry_filename);
+    j.at("physics_filename").get_to(v.physics_filename);
+    j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+
+    j.at("seed").get_to(v.seed);
+    j.at("max_num_tracks").get_to(v.max_num_tracks);
+    if (j.contains("max_steps"))
+    {
+        j.at("max_steps").get_to(v.max_steps);
+    }
+    j.at("initializer_capacity").get_to(v.initializer_capacity);
+    j.at("secondary_stack_factor").get_to(v.secondary_stack_factor);
+    j.at("enable_diagnostics").get_to(v.enable_diagnostics);
+    j.at("use_device").get_to(v.use_device);
+    j.at("sync").get_to(v.sync);
+    if (j.contains("step_limiter"))
+    {
+        j.at("step_limiter").get_to(v.step_limiter);
+    }
+
+    j.at("rayleigh").get_to(v.rayleigh);
+    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
+    j.at("brem_combined").get_to(v.brem_combined);
+    j.at("brem_lpm").get_to(v.brem_lpm);
+    j.at("conv_lpm").get_to(v.conv_lpm);
+    j.at("enable_msc").get_to(v.enable_msc);
+
+    if (j.contains("energy_diag"))
+    {
+        j.at("energy_diag").get_to(v.energy_diag);
+    }
+
+    if (j.contains("geant_options"))
+    {
+        j.at("geant_options").get_to(v.geant_options);
+    }
+}
+//!@}
 
 //---------------------------------------------------------------------------//
 TransporterInput load_input(const LDemoArgs& args)
@@ -130,11 +237,11 @@ TransporterInput load_input(const LDemoArgs& args)
             CELER_LOG(warning) << "Volume/material mapping is inconsistent "
                                   "between Geant4 data and geometry file: "
                                   "attempting to remap";
-            input.volume_names.resize(imported_data.volumes.size());
+            input.volume_labels.resize(imported_data.volumes.size());
             for (auto volume_idx : range(imported_data.volumes.size()))
             {
-                input.volume_names[volume_idx]
-                    = std::move(imported_data.volumes[volume_idx].name);
+                input.volume_labels[volume_idx] = Label::from_geant(
+                    imported_data.volumes[volume_idx].name);
             }
         }
         params.geomaterial
@@ -155,19 +262,30 @@ TransporterInput load_input(const LDemoArgs& args)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles                      = params.particle;
-        input.materials                      = params.material;
-        input.options.enable_fluctuation     = args.eloss_fluctuation;
+        input.particles = params.particle;
+        input.materials = params.material;
+        if (args.eloss_fluctuation)
+        {
+            input.fluctuation = std::make_shared<FluctuationParams>(
+                params.particle, params.material);
+        }
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
 
         BremsstrahlungProcess::Options brem_options;
-        brem_options.combined_model = args.brem_combined;
-        brem_options.enable_lpm     = args.brem_lpm;
+        brem_options.combined_model  = args.brem_combined;
+        brem_options.enable_lpm      = args.brem_lpm;
+        brem_options.use_integral_xs = true;
 
         GammaConversionProcess::Options conv_options;
         conv_options.enable_lpm = args.conv_lpm;
+
+        EPlusAnnihilationProcess::Options epgg_options;
+        epgg_options.use_integral_xs = true;
+
+        EIonizationProcess::Options ioni_options;
+        ioni_options.use_integral_xs = true;
 
         auto process_data = std::make_shared<ImportedProcesses>(
             std::move(imported_data.processes));
@@ -182,10 +300,10 @@ TransporterInput load_input(const LDemoArgs& args)
         }
         input.processes.push_back(std::make_shared<GammaConversionProcess>(
             params.particle, process_data, conv_options));
-        input.processes.push_back(
-            std::make_shared<EPlusAnnihilationProcess>(params.particle));
+        input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
+            params.particle, epgg_options));
         input.processes.push_back(std::make_shared<EIonizationProcess>(
-            params.particle, process_data));
+            params.particle, process_data, ioni_options));
         input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
             params.particle, params.material, process_data, brem_options));
         if (args.enable_msc)

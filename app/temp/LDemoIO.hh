@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "corecel/Types.hh"
 #include "corecel/math/NumericLimits.hh"
@@ -75,6 +76,9 @@ TransporterInput load_input(const LDemoArgs& args);
 
 // Build transporter from input arguments
 std::unique_ptr<TransporterBase> build_transporter(const LDemoArgs& run_args);
+
+void to_json(nlohmann::json& j, const LDemoArgs& value);
+void from_json(const nlohmann::json& j, LDemoArgs& value);
 
 //---------------------------------------------------------------------------//
 } // namespace demo_loop
