@@ -9,10 +9,10 @@ if(NOT ACCELERITAS_BUILTIN_CELERITAS)
 endif()
 
 #-----------------------------------------------------------------------------#
-# g4hpc: a Geant4 tasking application for HEP (LHC/CMS)
+# acc01: a Geant4 tasking application for HEP (LHC/CMS)
 #-----------------------------------------------------------------------------#
-add_executable(g4hpc
-  g4hpc.cc
+add_executable(acc01
+  acc01.cc
   src/ActionInitialization.cc
   src/CalorimeterHit.cc
   src/CalorimeterSD.cc
@@ -33,12 +33,12 @@ add_executable(g4hpc
   ../temp/Transporter.cc
 )
 
-target_include_directories(g4hpc PUBLIC
+target_include_directories(acc01 PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/../temp
 )
 
-celeritas_target_link_libraries(g4hpc
+celeritas_target_link_libraries(acc01
   Celeritas::Core
   Celeritas::IO
   ${Geant4_LIBRARIES}
@@ -46,7 +46,7 @@ celeritas_target_link_libraries(g4hpc
 
 if(CELERITAS_USE_CUDA)
   # Since we call cudaDeviceSync
-  celeritas_target_link_libraries(g4hpc
+  celeritas_target_link_libraries(acc01
     CUDA::cudart
   )
 endif()
