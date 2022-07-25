@@ -31,8 +31,8 @@ cmake ${SRC_DIR}/acceleritas \
 make -j
 ```
 
-## Running an application (example: g4hpc with 4 threads)
+## Running an application (example: acc01 with 4 threads)
 ```sh
-ln -s ${SRC_DIR}/acceleritas/app/g4hpc/input input
-./app/g4hpc/g4hpc -m input/run.mac -t 4
+ln -s ${SRC_DIR}/acceleritas/app/acc01/input input
+./app/acc01/acc01 -m input/run.mac -t 4
 ```
