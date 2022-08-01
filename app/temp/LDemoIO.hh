@@ -14,6 +14,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/phys/PrimaryGenerator.hh"
 
 #include "Transporter.hh"
 
@@ -26,12 +28,18 @@ namespace demo_loop
 struct LDemoArgs
 {
     using real_type = celeritas::real_type;
+    using Real3     = celeritas::Real3;
     using size_type = celeritas::size_type;
+
+    static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
 
     // Problem definition
     std::string geometry_filename; //!< Path to GDML file
     std::string physics_filename;  //!< Path to ROOT exported Geant4 data
-    std::string hepmc3_filename;   //!< Path to Hepmc3 event data
+    std::string hepmc3_filename;   //!< Path to HepMC3 event data
+
+    // Optional setup options for generating primaries programmatically
+    celeritas::PrimaryGeneratorOptions primary_gen_options;
 
     // Control
     unsigned int seed{};
@@ -42,6 +50,10 @@ struct LDemoArgs
     bool         enable_diagnostics{};
     bool         use_device{};
     bool         sync{};
+
+    // Magnetic field vector (mT) and associated field options
+    Real3                         mag_field{no_field()};
+    celeritas::FieldDriverOptions field_options;
 
     // Optional fixed-size step limiter for charged particles
     // (non-positive for unused)
@@ -65,9 +77,10 @@ struct LDemoArgs
     explicit operator bool() const
     {
         return !geometry_filename.empty() && !physics_filename.empty()
-               && !hepmc3_filename.empty() && max_num_tracks > 0
-               && max_steps > 0 && initializer_capacity > 0
-               && secondary_stack_factor > 0;
+               && (primary_gen_options || !hepmc3_filename.empty())
+               && max_num_tracks > 0 && max_steps > 0
+               && initializer_capacity > 0 && secondary_stack_factor > 0
+               && (mag_field == no_field() || field_options);
     }
 };
 

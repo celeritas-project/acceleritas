@@ -18,7 +18,7 @@ include(GNUInstallDirs)
 
 set(_default_builtin OFF)
 if(NOT ACCELERITAS_BUILTIN_CELERITAS)
-  find_package(Celeritas)
+  find_package(Celeritas 0.1.0)
   if(NOT Celeritas_FOUND)
     message(STATUS "External celeritas not found: using built-in submodule")
     set(_default_builtin ON)

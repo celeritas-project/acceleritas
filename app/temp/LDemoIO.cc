@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <string>
 
+#include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "celeritas/em/FluctuationParams.hh"
@@ -24,15 +25,20 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetupOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
+#include "celeritas/field/FieldDriverOptionsIO.json.hh"
+#include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
+#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
+#include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
@@ -94,7 +100,6 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
 {
     j = nlohmann::json{{"geometry_filename", v.geometry_filename},
                        {"physics_filename", v.physics_filename},
-                       {"hepmc3_filename", v.hepmc3_filename},
                        {"seed", v.seed},
                        {"max_num_tracks", v.max_num_tracks},
                        {"max_steps", v.max_steps},
@@ -103,12 +108,17 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"enable_diagnostics", v.enable_diagnostics},
                        {"use_device", v.use_device},
                        {"sync", v.sync},
+                       {"mag_field", v.mag_field},
                        {"rayleigh", v.rayleigh},
                        {"eloss_fluctuation", v.eloss_fluctuation},
                        {"brem_combined", v.brem_combined},
                        {"brem_lpm", v.brem_lpm},
                        {"conv_lpm", v.conv_lpm},
                        {"enable_msc", v.enable_msc}};
+    if (v.mag_field != LDemoArgs::no_field())
+    {
+        j["field_options"] = v.field_options;
+    }
     if (v.enable_diagnostics)
     {
         j["energy_diag"] = v.energy_diag;
@@ -121,13 +131,31 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["geant_options"] = v.geant_options;
     }
+    if (v.primary_gen_options)
+    {
+        j["primary_gen_options"] = v.primary_gen_options;
+    }
+    if (!v.hepmc3_filename.empty())
+    {
+        j["hepmc3_filename"] = v.hepmc3_filename;
+    }
 }
 
 void from_json(const nlohmann::json& j, LDemoArgs& v)
 {
     j.at("geometry_filename").get_to(v.geometry_filename);
     j.at("physics_filename").get_to(v.physics_filename);
-    j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    if (j.contains("hepmc3_filename"))
+    {
+        j.at("hepmc3_filename").get_to(v.hepmc3_filename);
+    }
+    if (j.contains("primary_gen_options"))
+    {
+        j.at("primary_gen_options").get_to(v.primary_gen_options);
+    }
+    CELER_VALIDATE(v.hepmc3_filename.empty() != !v.primary_gen_options,
+                   << "either a HepMC3 filename or options to generate "
+                      "primaries must be provided (but not both)");
 
     j.at("seed").get_to(v.seed);
     j.at("max_num_tracks").get_to(v.max_num_tracks);
@@ -140,6 +168,14 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
     j.at("enable_diagnostics").get_to(v.enable_diagnostics);
     j.at("use_device").get_to(v.use_device);
     j.at("sync").get_to(v.sync);
+    if (j.contains("mag_field"))
+    {
+        j.at("mag_field").get_to(v.mag_field);
+    }
+    if (v.mag_field != LDemoArgs::no_field() && j.contains("field_options"))
+    {
+        j.at("field_options").get_to(v.field_options);
+    }
     if (j.contains("step_limiter"))
     {
         j.at("step_limiter").get_to(v.step_limiter);
@@ -264,11 +300,6 @@ TransporterInput load_input(const LDemoArgs& args)
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
-        if (args.eloss_fluctuation)
-        {
-            input.fluctuation = std::make_shared<FluctuationParams>(
-                params.particle, params.material);
-        }
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
         input.action_manager                 = params.action_mgr.get();
@@ -313,6 +344,28 @@ TransporterInput load_input(const LDemoArgs& args)
                     params.particle, params.material, process_data));
         }
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
+    }
+    if (args.mag_field == LDemoArgs::no_field())
+    {
+        // Create along-step action
+        params.along_step = AlongStepGeneralLinearAction::from_params(
+            *params.material,
+            *params.particle,
+            *params.physics,
+            args.eloss_fluctuation,
+            params.action_mgr.get());
+    }
+    else
+    {
+        CELER_VALIDATE(!args.eloss_fluctuation,
+                       << "energy loss fluctuations are not supported "
+                          "simultaneoulsy with magnetic field");
+        UniformFieldParams field_params;
+        field_params.field   = args.mag_field;
+        field_params.options = args.field_options;
+
+        params.along_step = AlongStepUniformMscAction::from_params(
+            *params.physics, field_params, params.action_mgr.get());
     }
 
     // Construct RNG params
