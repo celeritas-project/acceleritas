@@ -15,7 +15,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/phys/PrimaryGenerator.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 #include "Transporter.hh"
 
@@ -51,7 +51,7 @@ struct LDemoArgs
     bool         use_device{};
     bool         sync{};
 
-    // Magnetic field vector (mT) and associated field options
+    // Magnetic field vector [* 1/Tesla] and associated field options
     Real3                         mag_field{no_field()};
     celeritas::FieldDriverOptions field_options;
 
@@ -60,18 +60,13 @@ struct LDemoArgs
     real_type step_limiter{};
 
     // Options for physics
-    bool rayleigh{true};
-    bool eloss_fluctuation{true};
     bool brem_combined{true};
-    bool brem_lpm{true};
-    bool conv_lpm{true};
-    bool enable_msc{false};
 
     // Diagnostic input
     EnergyDiagInput energy_diag;
 
     // Optional setup options if loading directly from Geant4
-    celeritas::GeantSetupOptions geant_options;
+    celeritas::GeantPhysicsOptions geant_options;
 
     //! Whether the run arguments are valid
     explicit operator bool() const

@@ -8,37 +8,29 @@
 #include "LDemoIO.hh"
 
 #include <algorithm>
+#include <set>
 #include <string>
 
 #include "corecel/cont/Array.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/process/BremsstrahlungProcess.hh"
-#include "celeritas/em/process/ComptonProcess.hh"
-#include "celeritas/em/process/EIonizationProcess.hh"
-#include "celeritas/em/process/EPlusAnnihilationProcess.hh"
-#include "celeritas/em/process/GammaConversionProcess.hh"
-#include "celeritas/em/process/MultipleScatteringProcess.hh"
-#include "celeritas/em/process/PhotoelectricProcess.hh"
-#include "celeritas/em/process/RayleighProcess.hh"
 #include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/GeantSetupOptionsIO.json.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionManager.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
 #include "celeritas/random/RngParams.hh"
 
 using namespace celeritas;
@@ -91,6 +83,19 @@ bool volumes_are_consistent(const GeoParams&                 geo,
 }
 
 //---------------------------------------------------------------------------//
+//! Get the set of all process classes in the input
+auto get_all_process_classes(const std::vector<ImportProcess>& processes)
+    -> decltype(auto)
+{
+    std::set<ImportProcessClass> result;
+    for (const auto& p : processes)
+    {
+        result.insert(p.process_class);
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 } // namespace
 
 //---------------------------------------------------------------------------//
@@ -109,12 +114,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
                        {"use_device", v.use_device},
                        {"sync", v.sync},
                        {"mag_field", v.mag_field},
-                       {"rayleigh", v.rayleigh},
-                       {"eloss_fluctuation", v.eloss_fluctuation},
-                       {"brem_combined", v.brem_combined},
-                       {"brem_lpm", v.brem_lpm},
-                       {"conv_lpm", v.conv_lpm},
-                       {"enable_msc", v.enable_msc}};
+                       {"brem_combined", v.brem_combined}};
     if (v.mag_field != LDemoArgs::no_field())
     {
         j["field_options"] = v.field_options;
@@ -127,7 +127,7 @@ void to_json(nlohmann::json& j, const LDemoArgs& v)
     {
         j["step_limiter"] = v.step_limiter;
     }
-    if (ends_with(v.geometry_filename, ".gdml"))
+    if (ends_with(v.physics_filename, ".gdml"))
     {
         j["geant_options"] = v.geant_options;
     }
@@ -181,12 +181,7 @@ void from_json(const nlohmann::json& j, LDemoArgs& v)
         j.at("step_limiter").get_to(v.step_limiter);
     }
 
-    j.at("rayleigh").get_to(v.rayleigh);
-    j.at("eloss_fluctuation").get_to(v.eloss_fluctuation);
     j.at("brem_combined").get_to(v.brem_combined);
-    j.at("brem_lpm").get_to(v.brem_lpm);
-    j.at("conv_lpm").get_to(v.conv_lpm);
-    j.at("enable_msc").get_to(v.enable_msc);
 
     if (j.contains("energy_diag"))
     {
@@ -228,9 +223,7 @@ TransporterInput load_input(const LDemoArgs& args)
 
     // Create action manager
     {
-        ActionManager::Options opts;
-        opts.sync         = args.sync;
-        params.action_mgr = std::make_shared<ActionManager>(opts);
+        params.action_reg = std::make_shared<ActionRegistry>();
     }
 
     // Load geometry
@@ -298,74 +291,70 @@ TransporterInput load_input(const LDemoArgs& args)
     // Load physics: create individual processes with make_shared
     {
         PhysicsParams::Input input;
-        input.particles = params.particle;
-        input.materials = params.material;
+        input.particles                      = params.particle;
+        input.materials                      = params.material;
         input.options.fixed_step_limiter     = args.step_limiter;
         input.options.secondary_stack_factor = args.secondary_stack_factor;
-        input.action_manager                 = params.action_mgr.get();
+        input.action_registry                = params.action_reg.get();
 
-        BremsstrahlungProcess::Options brem_options;
-        brem_options.combined_model  = args.brem_combined;
-        brem_options.enable_lpm      = args.brem_lpm;
-        brem_options.use_integral_xs = true;
-
-        GammaConversionProcess::Options conv_options;
-        conv_options.enable_lpm = args.conv_lpm;
-
-        EPlusAnnihilationProcess::Options epgg_options;
-        epgg_options.use_integral_xs = true;
-
-        EIonizationProcess::Options ioni_options;
-        ioni_options.use_integral_xs = true;
-
-        auto process_data = std::make_shared<ImportedProcesses>(
-            std::move(imported_data.processes));
-        input.processes.push_back(
-            std::make_shared<ComptonProcess>(params.particle, process_data));
-        input.processes.push_back(std::make_shared<PhotoelectricProcess>(
-            params.particle, params.material, process_data));
-        if (args.rayleigh)
         {
-            input.processes.push_back(std::make_shared<RayleighProcess>(
-                params.particle, params.material, process_data));
+            ProcessBuilder::Options opts;
+            opts.brem_combined = args.brem_combined;
+
+            ProcessBuilder build_process(
+                imported_data, opts, params.particle, params.material);
+            // TODO: there's got to be a cleaner way to get the set of all
+            // processes: maybe better to change how the ImportData is
+            // structured
+            for (auto p : get_all_process_classes(imported_data.processes))
+            {
+                input.processes.push_back(build_process(p));
+            }
         }
-        input.processes.push_back(std::make_shared<GammaConversionProcess>(
-            params.particle, process_data, conv_options));
-        input.processes.push_back(std::make_shared<EPlusAnnihilationProcess>(
-            params.particle, epgg_options));
-        input.processes.push_back(std::make_shared<EIonizationProcess>(
-            params.particle, process_data, ioni_options));
-        input.processes.push_back(std::make_shared<BremsstrahlungProcess>(
-            params.particle, params.material, process_data, brem_options));
-        if (args.enable_msc)
-        {
-            input.processes.push_back(
-                std::make_shared<MultipleScatteringProcess>(
-                    params.particle, params.material, process_data));
-        }
+
         params.physics = std::make_shared<PhysicsParams>(std::move(input));
+    }
+
+    bool eloss = false;
+    {
+        // TODO: use a struct for import em parameters rather than a map
+        auto iter = imported_data.em_params.find(
+            ImportEmParameter::energy_loss_fluct);
+        if (iter != imported_data.em_params.end())
+        {
+            eloss = static_cast<bool>(iter->second);
+        }
     }
     if (args.mag_field == LDemoArgs::no_field())
     {
         // Create along-step action
-        params.along_step = AlongStepGeneralLinearAction::from_params(
+        auto along_step = AlongStepGeneralLinearAction::from_params(
             *params.material,
             *params.particle,
             *params.physics,
-            args.eloss_fluctuation,
-            params.action_mgr.get());
+            eloss,
+            params.action_reg.get());
+        params.along_step = std::move(along_step);
     }
     else
     {
-        CELER_VALIDATE(!args.eloss_fluctuation,
+        CELER_VALIDATE(!eloss,
                        << "energy loss fluctuations are not supported "
                           "simultaneoulsy with magnetic field");
         UniformFieldParams field_params;
         field_params.field   = args.mag_field;
         field_params.options = args.field_options;
 
-        params.along_step = AlongStepUniformMscAction::from_params(
-            *params.physics, field_params, params.action_mgr.get());
+        // Interpret input in units of Tesla
+        for (real_type& f : field_params.field)
+        {
+            f *= units::tesla;
+        }
+
+        auto along_step = AlongStepUniformMscAction::from_params(
+            *params.physics, field_params, params.action_reg.get());
+        CELER_ASSERT(along_step->field() != LDemoArgs::no_field());
+        params.along_step = std::move(along_step);
     }
 
     // Construct RNG params
@@ -389,6 +378,7 @@ TransporterInput load_input(const LDemoArgs& args)
     result.num_initializers   = args.initializer_capacity;
     result.max_steps          = args.max_steps;
     result.enable_diagnostics = args.enable_diagnostics;
+    result.sync               = args.sync;
 
     // Save diagnosics
     result.energy_diag = args.energy_diag;
