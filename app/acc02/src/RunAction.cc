@@ -46,7 +46,10 @@ void RunAction::BeginOfRunAction(const G4Run* run)
         gArgs.use_device             = config->GetUseDevice();
         gArgs.enable_diagnostics     = config->GetEnableDiagnostics();
         gArgs.sync                   = config->GetSync();
-        gArgs.enable_msc             = config->GetEnableMsc();
+
+        gArgs.geant_options.msc = config->GetEnableMsc()
+                                      ? celeritas::MscModelSelection::urban
+                                      : celeritas::MscModelSelection::none;
 
         if (config->GetOffLoad())
         {
