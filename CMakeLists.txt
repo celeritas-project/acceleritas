@@ -18,8 +18,7 @@ include(GNUInstallDirs)
 
 set(_default_builtin OFF)
 if(NOT ACCELERITAS_BUILTIN_CELERITAS)
-  # XXX fix the version number based on upstream
-  find_package(Celeritas 0.1.1 REQUIRED)
+  find_package(Celeritas 0.2 REQUIRED)
   if(NOT Celeritas_FOUND)
     message(STATUS "External celeritas not found: using built-in submodule")
     set(_default_builtin ON)

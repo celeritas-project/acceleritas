@@ -39,8 +39,8 @@ target_include_directories(acc01 PUBLIC
 )
 
 celeritas_target_link_libraries(acc01
-  Celeritas::Core
-  Celeritas::IO
+  Celeritas::celeritas
+  nlohmann_json::nlohmann_json
   ${Geant4_LIBRARIES}
 )
 
