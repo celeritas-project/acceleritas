@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 {
     if (argc < 3 || argc > 7)
     {
-        G4cout << "Usage: g4hpc -m run.mac [-t nthreads] [-p msc]" << G4endl;
+        G4cout << "Usage: acc01 -m run.mac [-t nthreads] [-p msc]" << G4endl;
         return -1;
     }
 
@@ -58,9 +58,9 @@ int main(int argc, char** argv)
         if (mt)
         {
             runmanager->SetNumberOfThreads(nthreads);
-            G4cout << "\ng4hpc: event loop running in MT with " << nthreads
-                   << " threads out of " << G4Threading::G4GetNumberOfCores()
-                   << " available cores\n"
+            G4cout << "\nacc01: event loop running in G4Tasking with "
+                   << nthreads << " threads out of "
+                   << G4Threading::G4GetNumberOfCores() << " available cores\n"
                    << G4endl;
         }
     }
