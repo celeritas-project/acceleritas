@@ -12,7 +12,7 @@
 #include "LDemoIO.hh"
 #include "Transporter.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/MpiCommunicator.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 G4int DeviceAction::CountDevices() const

@@ -11,7 +11,7 @@
 #include "G4Run.hh"
 #include "G4Threading.hh"
 
-#include "celeritas/ext/MpiCommunicator.hh"
+#include "corecel/sys/MpiCommunicator.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 RunAction*           RunAction::gInstance = nullptr;
