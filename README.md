@@ -1,3 +1,10 @@
+# NOTICE: THIS REPOSITORY IS OBSOLETE
+
+This was a prototype for integrating Celeritas into Geant4 for offloading
+support. The key components of Soon's research implementation have been
+integrated into Celeritas as part of the `accel` library. See [the latest
+Acceleritas documentation](https://celeritas-project.github.io/celeritas/user/api/accel.html) for details on the supported capabilities.
+
 # Acceleritas Geant!
 
 With this incantation we hope to use the magic of GPU accelerators and Geant4's
@@ -13,12 +20,12 @@ HEP simulations.
 - VecGeom (Version 1.1.18) (with DBACKEND="Scalar" and CUDA="ON")
 - ROOT (Version 6.XX.X)
 
-## Configuring and building acceleritas 
+## Configuring and building acceleritas
 
 An example CMake command looks like with the CUDA Capability 7.0
 (assuming that celeritas required products are installed at ${INSTALL_DIR}:
 ```sh
-cmake ${SRC_DIR}/acceleritas \ 
+cmake ${SRC_DIR}/acceleritas \
       -D CELERITAS_USE_CUDA=ON \
       -D CELERITAS_USE_Geant4=ON  \
       -D CELERITAS_USE_VecGeom=ON \
